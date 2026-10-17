@@ -22,8 +22,10 @@ export interface Appointment {
   urgency: Urgency;
   slot: string;
   status: AppointmentStatus;
-  /** Field-level "AES-256" encrypted clinical notes (see lib/crypto.ts). */
+  /** Field-level AES-256-GCM encrypted clinical notes (ciphertext at rest). */
   notesEncrypted: string;
+  /** Decrypted notes — only returned to doctors by the API. */
+  notes?: string;
   createdAt: string;
 }
 

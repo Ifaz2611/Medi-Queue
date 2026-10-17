@@ -1,8 +1,8 @@
-// Mock authentication (FR-01).
+// Role metadata + demo account list (FR-01).
 //
-// Users log in with an ID + password and are locked to their own role area.
-// Replace `authenticate()` with Supabase Auth (signInWithPassword) later; the
-// rest of the app only depends on the returned AuthUser.
+// Real authentication now runs through Supabase Auth in
+// app/api/auth/login/route.ts. These demo credentials are seeded into the
+// backend by /api/seed and are shown on the login page for convenience.
 
 import type { AuthUser, Role } from "./types";
 

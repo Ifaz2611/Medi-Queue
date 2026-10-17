@@ -48,10 +48,10 @@ export default function LoginPage() {
     if (hydrated && user) router.replace(ROLE_HOME[user.role]);
   }, [hydrated, user, router]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
-    const result = login(id, password);
+    const result = await login(id, password);
     if (!result.ok || !result.user) {
       setError(result.error ?? "Unable to sign in.");
       return;

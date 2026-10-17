@@ -35,8 +35,8 @@ export default function Navbar() {
   if (pathname === "/" || pathname === "/login") return null;
   if (!hydrated) return null;
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     router.replace("/login");
   };
 

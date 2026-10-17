@@ -47,9 +47,9 @@ function DoctorDashboard() {
     setSavedFlash(false);
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!selected) return;
-    saveNotes(selected.id, draft);
+    await saveNotes(selected.id, draft);
     setSavedFlash(true);
     window.setTimeout(() => setSavedFlash(false), 2000);
   };

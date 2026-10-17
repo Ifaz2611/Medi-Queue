@@ -49,13 +49,13 @@ function StudentPortal() {
       prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key],
     );
 
-  const handleBook = () => {
+  const handleBook = async () => {
     setError("");
     if (!selectedSlot) {
       setError("Please select a time slot.");
       return;
     }
-    const response = bookSlot(
+    const response = await bookSlot(
       { studentName, studentId, chiefComplaint, symptoms, severity },
       selectedSlot,
       result.score,

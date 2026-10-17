@@ -105,22 +105,83 @@ create trigger trg_appointments_updated
   for each row execute function touch_updated_at();
 
 -- ---------------------------------------------------------------------------
+-- Auth bridge: create a profile row whenever a Supabase Auth user is created.
+-- ---------------------------------------------------------------------------
+create or replace function public.handle_new_user()
+returns trigger as $$
+begin
+  insert into public.users (auth_user_id, full_name, email, campus_id, role)
+  values (
+    new.id,
+    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
+    new.email,
+    new.raw_user_meta_data ->> 'campus_id',
+    coalesce((new.raw_user_meta_data ->> 'role')::user_role, 'student')
+  )
+  on conflict (auth_user_id) do update
+    set full_name = excluded.full_name,
+        email     = excluded.email,
+        campus_id = excluded.campus_id,
+        role      = excluded.role;
+  return new;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+drop trigger if exists on_auth_user_created on auth.users;
+create trigger on_auth_user_created
+  after insert on auth.users
+  for each row execute function public.handle_new_user();
+
+-- ---------------------------------------------------------------------------
 -- Row Level Security (RBAC privacy — admin sees metadata only)
 -- ---------------------------------------------------------------------------
 alter table users        enable row level security;
 alter table appointments enable row level security;
 alter table audit_logs   enable row level security;
 
--- Students read/write only their own appointments.
--- Doctors read all appointments and may update status / notes.
--- Admins read appointment metadata (no notes) and the audit log.
--- (Enable and tune these once Supabase Auth is wired up.)
---
--- create policy "students_own_appointments" on appointments
---   for all using (student_code = auth.jwt() ->> 'campus_id');
--- create policy "doctors_read_all" on appointments
---   for select using (auth.jwt() ->> 'role' = 'doctor');
--- create policy "admins_read_metadata" on appointments
---   for select using (auth.jwt() ->> 'role' = 'admin');
--- create policy "admins_read_audit" on audit_logs
---   for select using (auth.jwt() ->> 'role' = 'admin');
+-- Resolve the caller's MediQueue role / campus ID from their auth identity.
+create or replace function public.current_app_role()
+returns user_role as $$
+  select role from public.users where auth_user_id = auth.uid();
+$$ language sql stable security definer set search_path = public;
+
+create or replace function public.current_campus_id()
+returns text as $$
+  select campus_id from public.users where auth_user_id = auth.uid();
+$$ language sql stable security definer set search_path = public;
+
+-- users: read your own row; doctors/admins read everyone.
+drop policy if exists "users_read_self_or_staff" on users;
+create policy "users_read_self_or_staff" on users
+  for select using (
+    auth_user_id = auth.uid()
+    or public.current_app_role() in ('doctor', 'admin')
+  );
+
+-- users: keep your own profile current.
+drop policy if exists "users_update_self" on users;
+create policy "users_update_self" on users
+  for update using (auth_user_id = auth.uid());
+
+-- appointments: students own their rows; doctors read/update all; admins read all.
+drop policy if exists "students_own_appointments" on appointments;
+create policy "students_own_appointments" on appointments
+  for all using (student_code = public.current_campus_id())
+  with check (student_code = public.current_campus_id());
+
+drop policy if exists "staff_read_appointments" on appointments;
+create policy "staff_read_appointments" on appointments
+  for select using (public.current_app_role() in ('doctor', 'admin'));
+
+drop policy if exists "doctors_update_appointments" on appointments;
+create policy "doctors_update_appointments" on appointments
+  for update using (public.current_app_role() = 'doctor');
+
+-- audit_logs: append-only for anyone signed in, readable by admins only.
+drop policy if exists "audit_insert_authenticated" on audit_logs;
+create policy "audit_insert_authenticated" on audit_logs
+  for insert with check (auth.role() = 'authenticated');
+
+drop policy if exists "admins_read_audit" on audit_logs;
+create policy "admins_read_audit" on audit_logs
+  for select using (public.current_app_role() = 'admin');

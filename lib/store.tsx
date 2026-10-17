@@ -1,9 +1,7 @@
 "use client";
 
-// Self-contained local store (mock database + session) for the MVP.
-// Persists to localStorage so data and the login session survive a refresh,
-// and seeds realistic demo data on first run. Swap these actions for Supabase
-// queries later.
+// Client data layer (FR-01 ... FR-05). Talks to the Supabase-backed API routes
+// under /api and keeps a lightweight in-memory cache for the dashboards.
 
 import {
   createContext,
@@ -14,24 +12,12 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { authenticate } from "./auth";
-import { decryptField, encryptField } from "./crypto";
-import { createSeedAppointments, createSeedAuditLogs, MOCK_IP } from "./mockData";
 import type {
-  Actor,
   Appointment,
   AppointmentStatus,
   AuditLog,
   AuthUser,
 } from "./types";
-
-const STORAGE_KEY = "mediqueue.store.v1";
-const SESSION_KEY = "mediqueue.session.v1";
-
-interface PersistedState {
-  appointments: Appointment[];
-  auditLogs: AuditLog[];
-}
 
 export interface BookingInput {
   studentName: string;
@@ -58,216 +44,171 @@ interface StoreValue {
   auditLogs: AuditLog[];
   user: AuthUser | null;
   hydrated: boolean;
-  login: (id: string, password: string) => LoginResult;
-  logout: () => void;
+  login: (id: string, password: string) => Promise<LoginResult>;
+  logout: () => Promise<void>;
   isSlotAvailable: (slot: string) => boolean;
   bookSlot: (
     input: BookingInput,
     slot: string,
     score: number,
     urgency: Appointment["urgency"],
-  ) => BookingResult;
-  updateStatus: (id: string, status: AppointmentStatus) => void;
-  saveNotes: (id: string, plaintext: string) => void;
+  ) => Promise<BookingResult>;
+  updateStatus: (id: string, status: AppointmentStatus) => Promise<void>;
+  saveNotes: (id: string, plaintext: string) => Promise<void>;
   readNotes: (appointment: Appointment) => string;
-  resetDemo: () => void;
+  resetDemo: () => Promise<void>;
 }
 
 const StoreContext = createContext<StoreValue | null>(null);
 
-function freshState(): PersistedState {
-  return {
-    appointments: createSeedAppointments(),
-    auditLogs: createSeedAuditLogs(),
-  };
-}
-
-function makeAudit(
-  actor: Pick<Actor, "id" | "role">,
-  action: string,
-  resourceId: string,
-): AuditLog {
-  return {
-    id: `LOG-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-    timestamp: new Date().toISOString(),
-    userId: actor.id,
-    role: actor.role,
-    action,
-    resourceId,
-    ipAddress: MOCK_IP,
-  };
+async function request<T>(
+  url: string,
+  init?: RequestInit,
+): Promise<T & { error?: string; reason?: string }> {
+  try {
+    const res = await fetch(url, {
+      ...init,
+      headers: { "Content-Type": "application/json", ...(init?.headers ?? {}) },
+    });
+    return (await res.json()) as T & { error?: string; reason?: string };
+  } catch {
+    return { error: "Network error. Please retry." } as T & {
+      error?: string;
+      reason?: string;
+    };
+  }
 }
 
 export function StoreProvider({ children }: { children: ReactNode }) {
-  // Start empty so server and client render identically; hydrate on mount.
-  const [state, setState] = useState<PersistedState>(() => ({
-    appointments: [],
-    auditLogs: [],
-  }));
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [auditLogs, setAuditLogs] = useState<AuditLog[]>([]);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [hydrated, setHydrated] = useState(false);
 
-  useEffect(() => {
-    let nextData = freshState();
-    let nextUser: AuthUser | null = null;
-    try {
-      const rawData = window.localStorage.getItem(STORAGE_KEY);
-      if (rawData) nextData = JSON.parse(rawData) as PersistedState;
-      const rawSession = window.localStorage.getItem(SESSION_KEY);
-      if (rawSession) nextUser = JSON.parse(rawSession) as AuthUser;
-    } catch {
-      // ignore malformed storage, fall back to seeds / logged-out
+  /** Reload role-scoped data from the backend. */
+  const refresh = useCallback(async (current: AuthUser | null) => {
+    if (!current) {
+      setAppointments([]);
+      setAuditLogs([]);
+      return;
     }
-    // Hydrating from an external system (localStorage) on mount.
-    /* eslint-disable react-hooks/set-state-in-effect */
-    setState(nextData);
-    setUser(nextUser);
-    setHydrated(true);
-    /* eslint-enable react-hooks/set-state-in-effect */
+    const apps = await request<{ appointments: Appointment[] }>(
+      "/api/appointments",
+    );
+    setAppointments(apps.appointments ?? []);
+
+    if (current.role === "admin") {
+      const logs = await request<{ auditLogs: AuditLog[] }>("/api/audit");
+      setAuditLogs(logs.auditLogs ?? []);
+    } else {
+      setAuditLogs([]);
+    }
   }, []);
 
+  // Restore the session on mount.
   useEffect(() => {
-    if (!hydrated) return;
-    try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    } catch {
-      // storage unavailable (private mode) — keep in-memory state
-    }
-  }, [state, hydrated]);
+    let active = true;
+    (async () => {
+      const session = await request<{ user: AuthUser | null }>(
+        "/api/auth/session",
+      );
+      if (!active) return;
+      setUser(session.user ?? null);
+      if (session.user) await refresh(session.user);
+      if (active) setHydrated(true);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [refresh]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    try {
-      if (user) {
-        window.localStorage.setItem(SESSION_KEY, JSON.stringify(user));
-      } else {
-        window.localStorage.removeItem(SESSION_KEY);
+  const login = useCallback<StoreValue["login"]>(
+    async (id, password) => {
+      const res = await request<LoginResult>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ id, password }),
+      });
+      if (!res.ok || !res.user) {
+        return { ok: false, error: res.error ?? "Unable to sign in." };
       }
-    } catch {
-      // ignore storage errors
-    }
-  }, [user, hydrated]);
+      setUser(res.user);
+      await refresh(res.user);
+      return { ok: true, user: res.user };
+    },
+    [refresh],
+  );
 
-  const login = useCallback<StoreValue["login"]>((id, password) => {
-    const authed = authenticate(id, password);
-    if (!authed) {
-      return { ok: false, error: "Invalid ID or password. Try a demo account." };
-    }
-    setUser(authed);
-    return { ok: true, user: authed };
+  const logout = useCallback(async () => {
+    await request("/api/auth/logout", { method: "POST" });
+    setUser(null);
+    setAppointments([]);
+    setAuditLogs([]);
   }, []);
-
-  const logout = useCallback(() => setUser(null), []);
 
   const isSlotAvailable = useCallback(
     (slot: string) =>
-      !state.appointments.some(
-        (a) => a.slot === slot && a.status !== "Completed",
-      ),
-    [state.appointments],
+      !appointments.some((a) => a.slot === slot && a.status !== "Completed"),
+    [appointments],
   );
 
   const bookSlot = useCallback<StoreValue["bookSlot"]>(
-    (input, slot, score, urgency) => {
-      if (!input.studentName.trim() || !input.studentId.trim()) {
-        return { ok: false, reason: "Student name and ID are required." };
+    async (input, slot) => {
+      const res = await request<BookingResult>("/api/appointments", {
+        method: "POST",
+        // Identity + triage score are derived server-side; only the
+        // clinical intake fields are sent from the client.
+        body: JSON.stringify({
+          chiefComplaint: input.chiefComplaint,
+          symptoms: input.symptoms,
+          severity: input.severity,
+          slot,
+        }),
+      });
+      if (!res.ok || !res.appointment) {
+        return { ok: false, reason: res.reason ?? res.error ?? "Unable to book this slot." };
       }
-      if (
-        state.appointments.some(
-          (a) => a.slot === slot && a.status !== "Completed",
-        )
-      ) {
-        return {
-          ok: false,
-          reason: `${slot} is already booked. Choose another slot.`,
-        };
-      }
-
-      const appointment: Appointment = {
-        id: `APT-${Date.now()}`,
-        studentName: input.studentName.trim(),
-        studentId: input.studentId.trim(),
-        chiefComplaint: input.chiefComplaint.trim(),
-        symptoms: input.symptoms,
-        severity: input.severity,
-        triageScore: score,
-        urgency,
-        slot,
-        status: "Scheduled",
-        notesEncrypted: "",
-        createdAt: new Date().toISOString(),
-      };
-
-      const studentActor = {
-        id: input.studentId.trim(),
-        role: "student" as const,
-      };
-
-      setState((prev) => ({
-        appointments: [...prev.appointments, appointment],
-        auditLogs: [
-          makeAudit(studentActor, "Slot Booked", appointment.id),
-          makeAudit(
-            studentActor,
-            `Appointment Triaged (${urgency}, score ${score})`,
-            appointment.id,
-          ),
-          ...prev.auditLogs,
-        ],
-      }));
-
-      return { ok: true, appointment };
+      await refresh(user);
+      return { ok: true, appointment: res.appointment };
     },
-    [state.appointments],
+    [refresh, user],
   );
 
-  const updateStatus = useCallback(
-    (id: string, status: AppointmentStatus) => {
-      if (!user) return;
-      setState((prev) => {
-        if (!prev.appointments.some((a) => a.id === id)) return prev;
-        return {
-          appointments: prev.appointments.map((a) =>
-            a.id === id ? { ...a, status } : a,
-          ),
-          auditLogs: [
-            makeAudit({ id: user.id, role: user.role }, `Status Changed -> ${status}`, id),
-            ...prev.auditLogs,
-          ],
-        };
+  const updateStatus = useCallback<StoreValue["updateStatus"]>(
+    async (id, status) => {
+      await request(`/api/appointments/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ status }),
       });
+      await refresh(user);
     },
-    [user],
+    [refresh, user],
   );
 
   const saveNotes = useCallback(
-    (id: string, plaintext: string) => {
-      if (!user) return;
-      const encrypted = encryptField(plaintext);
-      setState((prev) => ({
-        appointments: prev.appointments.map((a) =>
-          a.id === id ? { ...a, notesEncrypted: encrypted } : a,
-        ),
-        auditLogs: [
-          makeAudit({ id: user.id, role: user.role }, "Clinical Note Added", id),
-          ...prev.auditLogs,
-        ],
-      }));
+    async (id: string, plaintext: string) => {
+      await request(`/api/appointments/${id}`, {
+        method: "PATCH",
+        body: JSON.stringify({ notes: plaintext }),
+      });
+      await refresh(user);
     },
-    [user],
+    [refresh, user],
   );
 
   const readNotes = useCallback<StoreValue["readNotes"]>(
-    (appointment) => decryptField(appointment.notesEncrypted),
+    (appointment) => appointment.notes ?? "",
     [],
   );
 
-  const resetDemo = useCallback(() => setState(freshState()), []);
+  const resetDemo = useCallback(async () => {
+    await request("/api/seed?reset=true", { method: "POST" });
+    await refresh(user);
+  }, [refresh, user]);
 
   const value = useMemo<StoreValue>(
     () => ({
-      appointments: state.appointments,
-      auditLogs: state.auditLogs,
+      appointments,
+      auditLogs,
       user,
       hydrated,
       login,
@@ -280,7 +221,8 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       resetDemo,
     }),
     [
-      state,
+      appointments,
+      auditLogs,
       user,
       hydrated,
       login,
