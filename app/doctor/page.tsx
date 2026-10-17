@@ -8,9 +8,11 @@ import {
   Play,
   Save,
   Stethoscope,
+  UserRound,
 } from "lucide-react";
 import Card from "@/components/Card";
 import LifecycleStepper from "@/components/LifecycleStepper";
+import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
@@ -22,8 +24,8 @@ type Filter = "All" | "Active" | "Completed";
 
 const FILTERS: Filter[] = ["All", "Active", "Completed"];
 
-export default function DoctorPage() {
-  const { appointments, updateStatus, saveNotes, readNotes } = useStore();
+function DoctorDashboard() {
+  const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
 
   const [filter, setFilter] = useState<Filter>("All");
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -56,21 +58,44 @@ export default function DoctorPage() {
     SYMPTOMS.find((s) => s.key === key)?.label ?? key;
 
   const openCount = appointments.filter((a) => a.status !== "Completed").length;
+  const highCount = appointments.filter(
+    (a) => a.urgency === "High" && a.status !== "Completed",
+  ).length;
 
   return (
-    <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
-            FR-04 · Doctor Dashboard
-          </p>
-          <h1 className="text-xl font-bold text-slate-800">
-            Real-Time Patient Queue
-          </h1>
-          <p className="text-sm text-slate-500">
-            Sorted by priority (High → Low) then earliest slot. {openCount} open.
-          </p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-6 text-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+            <Stethoscope className="h-6 w-6" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-emerald-100">
+              Doctor Dashboard
+            </p>
+            <h1 className="mt-0.5 text-2xl font-bold">{user?.name}</h1>
+          </div>
         </div>
+        <div className="flex gap-3">
+          <div className="rounded-xl bg-white/15 px-4 py-2 text-center backdrop-blur">
+            <p className="text-2xl font-bold">{openCount}</p>
+            <p className="text-[11px] uppercase tracking-wide text-emerald-100">
+              In queue
+            </p>
+          </div>
+          <div className="rounded-xl bg-white/15 px-4 py-2 text-center backdrop-blur">
+            <p className="text-2xl font-bold">{highCount}</p>
+            <p className="text-[11px] uppercase tracking-wide text-emerald-100">
+              High priority
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div className="flex flex-wrap items-end justify-between gap-3">
+        <p className="text-sm text-slate-500">
+          Sorted by priority (High → Low), then earliest slot.
+        </p>
         <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
           {FILTERS.map((f) => (
             <button
@@ -216,7 +241,8 @@ export default function DoctorPage() {
               <div className="mt-4">
                 <div className="mb-1.5 flex items-center justify-between">
                   <span className="flex items-center gap-1.5 text-sm font-medium text-slate-700">
-                    <FileText className="h-4 w-4 text-slate-400" /> Clinical Notes
+                    <FileText className="h-4 w-4 text-slate-400" /> Clinical
+                    Notes
                   </span>
                   {savedFlash && (
                     <span className="text-xs font-medium text-emerald-600">
@@ -233,8 +259,8 @@ export default function DoctorPage() {
                 />
                 <div className="mt-2 flex items-center justify-between gap-3">
                   <p className="flex items-center gap-1 text-[11px] text-slate-400">
-                    <Lock className="h-3 w-3" /> Field-level AES-256 (simulated)
-                    before save
+                    <Lock className="h-3 w-3" /> Field-level AES-256
+                    (simulated) before save
                   </p>
                   <button
                     type="button"
@@ -255,7 +281,10 @@ export default function DoctorPage() {
               <div className="mt-4 flex flex-wrap gap-2 border-t border-slate-100 pt-4">
                 <button
                   type="button"
-                  disabled={selected.status === "In-Consultation" || selected.status === "Completed"}
+                  disabled={
+                    selected.status === "In-Consultation" ||
+                    selected.status === "Completed"
+                  }
                   onClick={() => updateStatus(selected.id, "In-Consultation")}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
@@ -267,7 +296,7 @@ export default function DoctorPage() {
                   onClick={() => updateStatus(selected.id, "Completed")}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
-                  Mark Completed
+                  <UserRound className="h-4 w-4" /> Mark Completed
                 </button>
               </div>
             </Card>
@@ -275,5 +304,13 @@ export default function DoctorPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function DoctorPage() {
+  return (
+    <RequireRole role="doctor">
+      <DoctorDashboard />
+    </RequireRole>
   );
 }

@@ -49,3 +49,10 @@ export interface Actor {
   role: Role;
   name: string;
 }
+
+/** Authenticated session user (see lib/auth.ts). */
+export interface AuthUser {
+  id: string;
+  name: string;
+  role: Role;
+}

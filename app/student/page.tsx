@@ -4,25 +4,29 @@ import { useMemo, useState } from "react";
 import {
   Activity,
   CalendarDays,
-  Check,
+  CheckCircle2,
   ClipboardList,
   Info,
   Lock,
   TriangleAlert,
+  UserRound,
 } from "lucide-react";
 import Card from "@/components/Card";
 import LifecycleStepper from "@/components/LifecycleStepper";
+import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { PRIORITY_SLOTS, SLOTS } from "@/lib/mockData";
+import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
 import { SYMPTOMS, WEIGHTS, triage } from "@/lib/triage";
 
-export default function StudentPage() {
-  const { bookSlot, isSlotAvailable, appointments } = useStore();
+function StudentPortal() {
+  const { user, bookSlot, isSlotAvailable, appointments } = useStore();
 
-  const [studentName, setStudentName] = useState("");
-  const [studentId, setStudentId] = useState("");
+  const studentName = user?.name ?? "";
+  const studentId = user?.id ?? "";
+
   const [chiefComplaint, setChiefComplaint] = useState("");
   const [severity, setSeverity] = useState(5);
   const [symptoms, setSymptoms] = useState<string[]>([]);
@@ -30,18 +34,20 @@ export default function StudentPage() {
   const [error, setError] = useState("");
   const [bookedId, setBookedId] = useState<string | null>(null);
 
-  const booked = appointments.find((a) => a.id === bookedId) ?? null;
-
   const result = useMemo(
     () => triage(symptoms, severity, chiefComplaint),
     [symptoms, severity, chiefComplaint],
   );
 
-  const toggleSymptom = (key: string) => {
+  const mine = sortQueue(
+    appointments.filter((a) => a.studentId === studentId),
+  );
+  const justBooked = appointments.find((a) => a.id === bookedId) ?? null;
+
+  const toggleSymptom = (key: string) =>
     setSymptoms((prev) =>
       prev.includes(key) ? prev.filter((s) => s !== key) : [...prev, key],
     );
-  };
 
   const handleBook = () => {
     setError("");
@@ -73,18 +79,26 @@ export default function StudentPage() {
         : "border-emerald-200 bg-emerald-50";
 
   return (
-    <div className="space-y-5">
-      <div>
-        <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
-          FR-02 · FR-03 · Student Portal
-        </p>
-        <h1 className="text-xl font-bold text-slate-800">
-          Symptom Intake &amp; Slot Booking
-        </h1>
-        <p className="text-sm text-slate-500">
-          Describe your symptoms, review your triage priority, then reserve a
-          slot for today.
-        </p>
+    <div className="space-y-6">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 p-6 text-white shadow-sm">
+        <div>
+          <p className="text-xs font-semibold uppercase tracking-widest text-blue-100">
+            Student Portal
+          </p>
+          <h1 className="mt-1 text-2xl font-bold">Hi, {studentName}</h1>
+          <p className="mt-1 text-sm text-blue-50">
+            Describe your symptoms, review your triage priority and book a slot.
+          </p>
+        </div>
+        <div className="flex items-center gap-2 rounded-xl bg-white/15 px-4 py-3 backdrop-blur">
+          <UserRound className="h-5 w-5" />
+          <div>
+            <p className="text-[11px] uppercase tracking-wide text-blue-100">
+              Signed in
+            </p>
+            <p className="font-mono text-sm font-semibold">{studentId}</p>
+          </div>
+        </div>
       </div>
 
       <div className="grid gap-5 lg:grid-cols-2">
@@ -95,32 +109,7 @@ export default function StudentPage() {
             <h2 className="font-semibold text-slate-800">Symptom Intake</h2>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-500">
-                Student Name
-              </span>
-              <input
-                value={studentName}
-                onChange={(e) => setStudentName(e.target.value)}
-                placeholder="e.g. Ayesha Rahman"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-            <label className="block">
-              <span className="mb-1 block text-xs font-medium text-slate-500">
-                Student ID
-              </span>
-              <input
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                placeholder="e.g. STU-2024-001"
-                className="w-full rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
-              />
-            </label>
-          </div>
-
-          <label className="mt-3 block">
+          <label className="block">
             <span className="mb-1 block text-xs font-medium text-slate-500">
               Chief Complaint
             </span>
@@ -191,12 +180,12 @@ export default function StudentPage() {
 
         {/* Triage + booking */}
         <div className="space-y-5">
-          <Card className={urgencyRing}>
+          <div className={`rounded-xl border p-5 shadow-sm ${urgencyRing}`}>
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Activity className="h-4 w-4 text-slate-500" />
                 <h2 className="font-semibold text-slate-800">
-                  Deterministic Triage
+                  Live Triage Result
                 </h2>
               </div>
               <UrgencyBadge urgency={result.urgency} />
@@ -230,13 +219,13 @@ export default function StudentPage() {
             </div>
 
             <p className="mt-3 rounded-lg bg-white/60 px-3 py-2 font-mono text-[11px] text-slate-500">
-              P = ({WEIGHTS.keyword} × {result.keywordWeight}) + ({WEIGHTS.severity} ×{" "}
-              {result.severity}) = {result.score}
+              P = ({WEIGHTS.keyword} × {result.keywordWeight}) + (
+              {WEIGHTS.severity} × {result.severity}) = {result.score}
             </p>
             <p className="mt-2 flex items-center gap-1 text-[11px] text-slate-500">
               <Info className="h-3 w-3" /> ≥25 High · ≥15 Medium · else Low
             </p>
-          </Card>
+          </div>
 
           <Card>
             <div className="mb-1 flex items-center gap-2">
@@ -290,8 +279,8 @@ export default function StudentPage() {
             </div>
 
             <p className="mt-3 text-[11px] text-slate-500">
-              Priority slots (09:00, 09:30) are reserved for High urgency and
-              are locked for other scores. Booked slots cannot be double-booked.
+              Priority slots (09:00, 09:30) are reserved for High urgency.
+              Booked slots cannot be double-booked.
             </p>
 
             {error && (
@@ -309,30 +298,69 @@ export default function StudentPage() {
             </button>
           </Card>
 
-          {booked && (
-            <Card className="border-emerald-200 bg-emerald-50">
+          {justBooked && (
+            <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 shadow-sm">
               <div className="flex items-center gap-2 text-emerald-700">
-                <Check className="h-4 w-4" />
+                <CheckCircle2 className="h-4 w-4" />
                 <h2 className="font-semibold">Appointment confirmed</h2>
               </div>
               <div className="mt-2 flex flex-wrap items-center gap-2 text-sm">
                 <span className="font-medium text-slate-700">
-                  {booked.slot}
+                  {justBooked.slot}
                 </span>
-                <span className="text-slate-500">{booked.id}</span>
-                <UrgencyBadge urgency={booked.urgency} />
-                <StatusBadge status={booked.status} />
+                <span className="text-slate-500">{justBooked.id}</span>
+                <UrgencyBadge urgency={justBooked.urgency} />
+                <StatusBadge status={justBooked.status} />
               </div>
-              <div className="mt-4 rounded-lg bg-white p-3">
-                <p className="mb-2 text-[11px] uppercase tracking-wide text-slate-400">
-                  Appointment lifecycle
-                </p>
-                <LifecycleStepper status={booked.status} />
-              </div>
-            </Card>
+            </div>
           )}
         </div>
       </div>
+
+      {/* My appointments */}
+      <Card>
+        <h2 className="mb-3 font-semibold text-slate-800">My Appointments</h2>
+        {mine.length === 0 ? (
+          <p className="py-4 text-sm text-slate-400">
+            You have no appointments yet. Book a slot above.
+          </p>
+        ) : (
+          <ul className="space-y-3">
+            {mine.map((a) => (
+              <li
+                key={a.id}
+                className="rounded-lg border border-slate-100 p-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-3">
+                    <span className="text-base font-bold text-slate-800">
+                      {a.slot}
+                    </span>
+                    <span className="font-mono text-xs text-slate-400">
+                      {a.id}
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <UrgencyBadge urgency={a.urgency} />
+                    <StatusBadge status={a.status} />
+                  </div>
+                </div>
+                <div className="mt-3 rounded-lg bg-slate-50 p-3">
+                  <LifecycleStepper status={a.status} />
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </Card>
     </div>
+  );
+}
+
+export default function StudentPage() {
+  return (
+    <RequireRole role="student">
+      <StudentPortal />
+    </RequireRole>
   );
 }

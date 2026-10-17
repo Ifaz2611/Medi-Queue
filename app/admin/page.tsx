@@ -2,6 +2,7 @@
 
 import { RotateCcw, ShieldCheck, TableProperties } from "lucide-react";
 import Card from "@/components/Card";
+import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
@@ -17,8 +18,8 @@ function formatTime(iso: string): string {
   });
 }
 
-export default function AdminPage() {
-  const { appointments, auditLogs, resetDemo, hydrated } = useStore();
+function AdminDashboard() {
+  const { user, appointments, auditLogs, resetDemo, hydrated } = useStore();
   const queue = sortQueue(appointments);
   const logs = [...auditLogs].sort((a, b) =>
     b.timestamp.localeCompare(a.timestamp),
@@ -26,35 +27,34 @@ export default function AdminPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-end justify-between gap-3">
-        <div>
-          <p className="text-xs font-semibold uppercase tracking-widest text-blue-600">
-            FR-05 · Admin / Audit
-          </p>
-          <h1 className="text-xl font-bold text-slate-800">
-            Queue Metadata &amp; Audit Trail
-          </h1>
-          <p className="text-sm text-slate-500">
-            Role-based privacy: symptoms and clinical notes are hidden from
-            admin.
-          </p>
+      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-slate-800 to-slate-600 p-6 text-white shadow-sm">
+        <div className="flex items-center gap-3">
+          <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
+            <ShieldCheck className="h-6 w-6" />
+          </span>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-widest text-slate-200">
+              Admin / Audit
+            </p>
+            <h1 className="mt-0.5 text-2xl font-bold">{user?.name}</h1>
+          </div>
         </div>
         <button
           type="button"
           onClick={resetDemo}
-          className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
         >
           <RotateCcw className="h-4 w-4" /> Reset demo data
         </button>
       </div>
 
-      <Card className="border-blue-100 bg-blue-50/60 p-3">
+      <div className="rounded-xl border border-blue-100 bg-blue-50/60 p-3">
         <p className="flex items-center gap-2 text-xs text-blue-700">
           <ShieldCheck className="h-4 w-4 shrink-0" />
           RBAC active — hidden fields: chief complaint, symptoms, severity and
           encrypted clinical notes.
         </p>
-      </Card>
+      </div>
 
       {/* Queue metadata only */}
       <Card className="overflow-hidden p-0">
@@ -77,7 +77,10 @@ export default function AdminPage() {
             <tbody className="divide-y divide-slate-100">
               {queue.length === 0 ? (
                 <tr>
-                  <td colSpan={4} className="px-5 py-6 text-center text-slate-400">
+                  <td
+                    colSpan={4}
+                    className="px-5 py-6 text-center text-slate-400"
+                  >
                     No appointments.
                   </td>
                 </tr>
@@ -127,7 +130,10 @@ export default function AdminPage() {
             <tbody className="divide-y divide-slate-100">
               {!hydrated || logs.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="px-5 py-6 text-center text-slate-400">
+                  <td
+                    colSpan={5}
+                    className="px-5 py-6 text-center text-slate-400"
+                  >
                     {hydrated ? "No events recorded." : "Loading audit trail…"}
                   </td>
                 </tr>
@@ -160,5 +166,13 @@ export default function AdminPage() {
         </div>
       </Card>
     </div>
+  );
+}
+
+export default function AdminPage() {
+  return (
+    <RequireRole role="admin">
+      <AdminDashboard />
+    </RequireRole>
   );
 }
