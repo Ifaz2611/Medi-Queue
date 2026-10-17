@@ -58,11 +58,12 @@ Welcome to the **MediQueue** codebase. This file serves as the definitive refere
 | :--- | :--- | :--- |
 | `app/layout.tsx` | Global HTML shell, fonts (`Geist`), StoreProvider wrapper | Server/Client |
 | `app/page.tsx` | Root landing page with role-based automatic redirection | Client |
-| `app/login/page.tsx` | Authentication screen, demo credential cards, error banners | Client |
+| `app/login/page.tsx` | Authentication screen (Sign In & Register tabs), demo cards, error banners | Client |
 | `app/student/page.tsx` | Symptom checklist, severity slider, live score, slot booking | Client |
 | `app/doctor/page.tsx` | Priority sorted queue, consultation status stepper, encrypted notes | Client |
 | `app/admin/page.tsx` | Queue metadata view (privacy-preserved), audit log, reset button | Client |
 | `app/api/auth/login/route.ts` | Authenticates campus ID via Supabase Auth email alias | Server |
+| `app/api/auth/register/route.ts` | Registers new campus user, establishes cookie session & audit log | Server |
 | `app/api/auth/logout/route.ts` | Signs user out and clears auth cookies | Server |
 | `app/api/auth/session/route.ts`| Returns currently authenticated session user & role profile | Server |
 | `app/api/appointments/route.ts`| GET (role-scoped list) & POST (triage & book slot) | Server |

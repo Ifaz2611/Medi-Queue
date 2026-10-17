@@ -17,6 +17,7 @@ import type {
   AppointmentStatus,
   AuditLog,
   AuthUser,
+  Role,
 } from "./types";
 
 export interface BookingInput {
@@ -33,6 +34,13 @@ export interface BookingResult {
   appointment?: Appointment;
 }
 
+export interface RegisterInput {
+  fullName: string;
+  campusId: string;
+  password: string;
+  role: Role;
+}
+
 export interface LoginResult {
   ok: boolean;
   error?: string;
@@ -45,6 +53,7 @@ interface StoreValue {
   user: AuthUser | null;
   hydrated: boolean;
   login: (id: string, password: string) => Promise<LoginResult>;
+  register: (input: RegisterInput) => Promise<LoginResult>;
   logout: () => Promise<void>;
   isSlotAvailable: (slot: string) => boolean;
   bookSlot: (
@@ -138,6 +147,22 @@ export function StoreProvider({ children }: { children: ReactNode }) {
     [refresh],
   );
 
+  const register = useCallback<StoreValue["register"]>(
+    async (input) => {
+      const res = await request<LoginResult>("/api/auth/register", {
+        method: "POST",
+        body: JSON.stringify(input),
+      });
+      if (!res.ok || !res.user) {
+        return { ok: false, error: res.error ?? "Unable to register." };
+      }
+      setUser(res.user);
+      await refresh(res.user);
+      return { ok: true, user: res.user };
+    },
+    [refresh],
+  );
+
   const logout = useCallback(async () => {
     await request("/api/auth/logout", { method: "POST" });
     setUser(null);
@@ -212,6 +237,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       user,
       hydrated,
       login,
+      register,
       logout,
       isSlotAvailable,
       bookSlot,
@@ -226,6 +252,7 @@ export function StoreProvider({ children }: { children: ReactNode }) {
       user,
       hydrated,
       login,
+      register,
       logout,
       isSlotAvailable,
       bookSlot,
