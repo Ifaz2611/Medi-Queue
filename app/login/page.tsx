@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   Check,
   CheckCircle2,
@@ -16,8 +16,10 @@ import {
   UserRound,
   X,
 } from "lucide-react";
+import GoogleIcon from "@/components/GoogleIcon";
 import IubLogo from "@/components/IubLogo";
 import { CREDENTIALS, ROLE_HOME, ROLE_LABEL } from "@/lib/auth";
+import { createBrowserSupabase } from "@/lib/supabase/client";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/lib/types";
 
@@ -55,9 +57,13 @@ const ROLES: {
   },
 ];
 
-export default function LoginPage() {
+function LoginContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { login, register, user, hydrated } = useStore();
+
+  // Errors handed back from /auth/callback land in the query string.
+  const oauthError = searchParams.get("error") ?? "";
 
   const [mode, setMode] = useState<"login" | "register">("login");
 
@@ -78,6 +84,7 @@ export default function LoginPage() {
 
   // Form feedback
   const [loading, setLoading] = useState(false);
+  const [googleLoading, setGoogleLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
@@ -86,6 +93,40 @@ export default function LoginPage() {
       router.replace(ROLE_HOME[user.role as Role]);
     }
   }, [hydrated, user, router]);
+
+  const dismissError = () => {
+    setError("");
+    if (oauthError) router.replace("/login");
+  };
+
+  const handleGoogleSignIn = async () => {
+    setError("");
+    setSuccess("");
+    setGoogleLoading(true);
+
+    try {
+      const supabase = createBrowserSupabase();
+      const { error: oauthError } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+          queryParams: { prompt: "select_account" },
+        },
+      });
+
+      // On success the browser is redirected to Google, so we only handle
+      // the failure branch here.
+      if (oauthError) {
+        setError(oauthError.message);
+        setGoogleLoading(false);
+      }
+    } catch (err: unknown) {
+      setError(
+        err instanceof Error ? err.message : "Unable to start Google sign-in."
+      );
+      setGoogleLoading(false);
+    }
+  };
 
   const switchMode = (nextMode: "login" | "register") => {
     setMode(nextMode);
@@ -371,16 +412,16 @@ export default function LoginPage() {
             </div>
 
             {/* Error Message */}
-            {error && (
+            {(error || oauthError) && (
               <div
                 role="alert"
                 className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-red-200 bg-red-50/80 px-3.5 py-2.5 text-xs text-red-700"
               >
-                <span>{error}</span>
+                <span>{error || oauthError}</span>
 
                 <button
                   type="button"
-                  onClick={() => setError("")}
+                  onClick={dismissError}
                   className="rounded p-0.5 text-red-400 hover:text-red-700"
                   aria-label="Dismiss error"
                 >
@@ -408,6 +449,32 @@ export default function LoginPage() {
                 className="space-y-4"
                 noValidate
               >
+                {/* Google OAuth */}
+                <button
+                  type="button"
+                  onClick={handleGoogleSignIn}
+                  disabled={loading || googleLoading}
+                  className="flex w-full items-center justify-center gap-2.5 rounded-lg border border-slate-300 bg-white py-2.5 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-50 disabled:opacity-60"
+                >
+                  {googleLoading ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <GoogleIcon className="h-4.5 w-4.5" />
+                  )}
+                  {googleLoading
+                    ? "Connecting to Google..."
+                    : "Continue with Google"}
+                </button>
+
+                {/* Divider */}
+                <div className="flex items-center gap-3">
+                  <span className="h-px flex-1 bg-slate-200" />
+                  <span className="text-[11px] font-medium uppercase tracking-wide text-slate-400">
+                    or use Campus ID
+                  </span>
+                  <span className="h-px flex-1 bg-slate-200" />
+                </div>
+
                 {/* Demo Logins */}
                 <div className="rounded-lg border border-slate-200 bg-slate-50/60 p-2.5">
                   <div className="flex flex-wrap items-center justify-between gap-1.5">
@@ -834,5 +901,19 @@ export default function LoginPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 shadow-xs">
+          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+        </div>
+      }
+    >
+      <LoginContent />
+    </Suspense>
   );
 }

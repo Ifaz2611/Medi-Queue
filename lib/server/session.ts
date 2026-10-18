@@ -22,7 +22,7 @@ export async function getSessionUser(): Promise<AuthUser | null> {
 
   if (!profile) return null;
   return {
-    id: profile.campus_id,
+    id: profile.campus_id ?? user.email ?? user.id,
     name: profile.full_name,
     role: profile.role as Role,
   };

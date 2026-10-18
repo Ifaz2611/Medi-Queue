@@ -115,7 +115,7 @@ begin
     new.id,
     coalesce(new.raw_user_meta_data ->> 'full_name', split_part(new.email, '@', 1)),
     new.email,
-    new.raw_user_meta_data ->> 'campus_id',
+    coalesce(new.raw_user_meta_data ->> 'campus_id', new.email, new.id::text),
     coalesce((new.raw_user_meta_data ->> 'role')::user_role, 'student')
   )
   on conflict (auth_user_id) do update
