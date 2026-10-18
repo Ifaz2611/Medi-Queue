@@ -10,6 +10,7 @@ import {
   Stethoscope,
   UserRound,
 } from "lucide-react";
+import IubLogo from "@/components/IubLogo";
 import { ROLE_LABEL } from "@/lib/auth";
 import { useStore } from "@/lib/store";
 import type { Role } from "@/lib/types";
@@ -53,6 +54,21 @@ export default function Navbar() {
             MediQueue
           </span>
         </Link>
+
+        <span
+          className="hidden h-6 w-px bg-slate-200 sm:block"
+          aria-hidden="true"
+        />
+        <div className="hidden items-center gap-2 sm:flex">
+          <IubLogo className="h-7 w-auto" />
+          <span className="hidden text-[11px] leading-tight text-slate-400 md:block">
+            In collaboration with
+            <br />
+            <span className="font-medium text-slate-600">
+              Independent University Bangladesh
+            </span>
+          </span>
+        </div>
 
         <nav className="flex items-center gap-1">
           {items.map((item) => {

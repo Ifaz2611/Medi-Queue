@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "MediQueue – Campus Clinic Appointment & Triage",
+  title: "MediQueue × IUB – Campus Clinic Appointment & Triage",
   description:
-    "Campus clinic queue, symptom intake, deterministic triage and appointment booking.",
+    "MediQueue, in collaboration with Independent University Bangladesh (IUB): campus clinic queue, symptom intake, deterministic triage and appointment booking.",
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
