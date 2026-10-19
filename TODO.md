@@ -40,7 +40,7 @@ To keep the project simple, collaborative, and tailored for a university course 
          ┌────────────────────────────────────────────┼────────────────────────────────────────────┐
          ▼                                            ▼                                            ▼
 ┌─────────────────────────────────┐   ┌─────────────────────────────────┐   ┌─────────────────────────────────┐
-│            Member 1             │   │            Member 2             │   │            Member 3             │
+│          Mirza Rafi             │   │             Tausif              │   │             Kazi                │
 │   QA, Testing & Verification    │   │    UI Polish, Search & Clinic   │   │    Technical Documentation,     │
 │        (Testing & Cases)        │   │       Statistics Dashboard      │   │    Report & Presentation Deck   │
 └─────────────────────────────────┘   └─────────────────────────────────┘   └─────────────────────────────────┘
