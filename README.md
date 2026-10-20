@@ -182,6 +182,17 @@ Use these pre-configured accounts on `/login` (or click the quick-fill demo card
 
 ## Quality Assurance & Verification
 
+Run the triage unit tests with **Node.js 22.19 or later** (native TypeScript support):
+
+```bash
+npm test
+```
+
+These tests run without Supabase or environment variables and cover urgency thresholds,
+symptom weights, case-insensitive complaint keywords, and valid/invalid severity values.
+The triage engine throws `RangeError` for non-finite severity or values outside 1–10.
+On Windows PowerShell, use `npm.cmd test` if script execution policy blocks `npm.ps1`.
+
 Before opening a pull request or deploying, run the verification suite:
 
 ```bash
