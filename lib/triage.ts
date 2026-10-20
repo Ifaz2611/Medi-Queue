@@ -59,12 +59,16 @@ export function categorize(score: number): Urgency {
   return "Low";
 }
 
-/** Run the deterministic triage formula and return a scored result. */
+/** Run the deterministic triage formula; reject non-finite or out-of-range severity. */
 export function triage(
   selected: string[],
   severity: number,
   complaint = "",
 ): TriageResult {
+  if (!Number.isFinite(severity) || severity < 1 || severity > 10) {
+    throw new RangeError("Severity must be between 1 and 10.");
+  }
+
   const K = keywordWeight(selected, complaint);
   const S = severity;
   const score = Number((WEIGHTS.keyword * K + WEIGHTS.severity * S).toFixed(1));

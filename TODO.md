@@ -56,7 +56,7 @@ To keep the project simple, collaborative, and tailored for a university course 
 **Goal:** Verify system logic, test the triage calculation with boundary inputs, and ensure data integrity across user roles.
 
 ### Tasks
-- [ ] **Triage Engine Test Cases (`lib/triage.ts`):**
+- [x] **Triage Engine Test Cases (`lib/triage.ts`):**
   - Verify boundary scores: exact threshold triggers for `High` ($\ge 25$), `Medium` ($\ge 15$), and `Low` ($< 15$).
   - Test keyword matching variations (e.g., uppercase `"CHEST PAIN"`, `"shortness of breath"`).
   - Verify severity limits ($1 \le \text{severity} \le 10$).
