@@ -60,7 +60,7 @@ To keep the project simple, collaborative, and tailored for a university course 
   - Verify boundary scores: exact threshold triggers for `High` ($\ge 25$), `Medium` ($\ge 15$), and `Low` ($< 15$).
   - Test keyword matching variations (e.g., uppercase `"CHEST PAIN"`, `"shortness of breath"`).
   - Verify severity limits ($1 \le \text{severity} \le 10$).
-- [ ] **Cryptographic Encryption Verification (`lib/server/crypto.ts`):**
+- [x] **Cryptographic Encryption Verification (`lib/server/crypto.ts`):**
   - Verify round-trip AES-256-GCM encryption and decryption.
   - Assert modified/corrupted ciphertext fails gracefully without leaking secrets.
 - [ ] **Role-Based Access (RBAC) Verification:**

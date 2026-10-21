@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node --experimental-strip-types --test tests/triage.test.mjs",
+    "test": "node --experimental-strip-types --import ./tests/helpers/typescript-loader.mjs --test tests/*.test.mjs",
+    "test:crypto": "node --experimental-strip-types --import ./tests/helpers/typescript-loader.mjs --test tests/crypto.test.mjs",
     "lint": "eslint"
   },
   "dependencies": {

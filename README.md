@@ -182,15 +182,20 @@ Use these pre-configured accounts on `/login` (or click the quick-fill demo card
 
 ## Quality Assurance & Verification
 
-Run the triage unit tests with **Node.js 22.19 or later** (native TypeScript support):
+Run the unit tests with **Node.js 22.19 or later** (native TypeScript support):
 
 ```bash
 npm test
 ```
 
-These tests run without Supabase or environment variables and cover urgency thresholds,
-symptom weights, case-insensitive complaint keywords, and valid/invalid severity values.
+These tests run without Supabase or `.env.local`. They cover urgency thresholds,
+symptom weights, case-insensitive complaint keywords, and valid/invalid severity values,
+plus AES-256-GCM round trips, independent cipher compatibility, fresh IVs, and corrupted notes.
 The triage engine throws `RangeError` for non-finite severity or values outside 1–10.
+Encryption tests use a temporary QA-only key and restore the process environment after import.
+Run only the encryption suite with `npm run test:crypto`. Malformed, unsupported-version,
+or unauthenticated `enc:` notes return an empty string without logging sensitive details;
+existing legacy plaintext notes still pass through.
 On Windows PowerShell, use `npm.cmd test` if script execution policy blocks `npm.ps1`.
 
 Before opening a pull request or deploying, run the verification suite:
