@@ -198,6 +198,15 @@ or unauthenticated `enc:` notes return an empty string without logging sensitive
 existing legacy plaintext notes still pass through.
 On Windows PowerShell, use `npm.cmd test` if script execution policy blocks `npm.ps1`.
 
+Run the role-based API verification separately with `npm run test:rbac`.
+Its 22 tests execute the actual appointment and audit handlers with simulated
+sessions and an in-memory database, checking student isolation, doctor-only
+updates, admin clinical-data redaction, and unauthenticated requests. The full
+`npm test` command also includes these tests. See the
+[RBAC QA sheet](docs/qa/rbac-verification.md) for results and the limits of this
+verification, including database-policy and role-assignment concerns found in
+source review. These tests do not connect to Supabase or load `.env.local`.
+
 Before opening a pull request or deploying, run the verification suite:
 
 ```bash

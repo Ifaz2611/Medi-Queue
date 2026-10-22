@@ -8,6 +8,7 @@
     "start": "next start",
     "test": "node --experimental-strip-types --import ./tests/helpers/typescript-loader.mjs --test tests/*.test.mjs",
     "test:crypto": "node --experimental-strip-types --import ./tests/helpers/typescript-loader.mjs --test tests/crypto.test.mjs",
+    "test:rbac": "node --experimental-strip-types --import ./tests/helpers/typescript-loader.mjs --test tests/rbac.test.mjs",
     "lint": "eslint"
   },
   "dependencies": {

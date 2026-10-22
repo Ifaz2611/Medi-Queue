@@ -63,10 +63,11 @@ To keep the project simple, collaborative, and tailored for a university course 
 - [x] **Cryptographic Encryption Verification (`lib/server/crypto.ts`):**
   - Verify round-trip AES-256-GCM encryption and decryption.
   - Assert modified/corrupted ciphertext fails gracefully without leaking secrets.
-- [ ] **Role-Based Access (RBAC) Verification:**
+- [x] **Role-Based Access (RBAC) Verification:**
   - Verify students cannot see other students' appointments.
   - Verify students and administrators receive `403 Forbidden` if attempting to access doctor endpoints.
   - Verify admin appointment list does not contain clinical complaints or notes.
+  - Automated API verification: `npm run test:rbac` (22 passing tests). Results and source-review limitations: [RBAC QA sheet](docs/qa/rbac-verification.md).
 - [ ] **Manual Test Plan & Scenario Checklist:**
   - Create a test scenario document testing all 3 user roles:
     1. Student signs in $\rightarrow$ inputs symptoms $\rightarrow$ books slot.
