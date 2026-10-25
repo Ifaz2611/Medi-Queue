@@ -207,6 +207,12 @@ updates, admin clinical-data redaction, and unauthenticated requests. The full
 verification, including database-policy and role-assignment concerns found in
 source review. These tests do not connect to Supabase or load `.env.local`.
 
+For browser and live database verification, use the
+[manual test plan and execution checklist](docs/qa/manual-test-plan.md).
+It covers Student booking, Doctor queue/notes/completion, Admin audit review,
+and rollback-only audit mutation probes. Manual results are pending; record
+evidence before treating those workflows as verified.
+
 Before opening a pull request or deploying, run the verification suite:
 
 ```bash

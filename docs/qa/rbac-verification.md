@@ -64,7 +64,8 @@ type; the tests assert that their contents are removed.
 Cookie validation, `getSessionUser()` itself, browser routing, and deployed
 Supabase RLS/grants are outside this suite. Database filtering is simulated;
 the suite does not prove that the deployed policies match `schema.sql`.
-The separate manual workflow checklist remains Member 1's task 4.
+The separate [manual workflow checklist](manual-test-plan.md) is Member 1's
+task 4 deliverable. Its browser and live database execution results remain pending.
 
 ## Source-review concerns requiring follow-up
 
