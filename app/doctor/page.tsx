@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   ClipboardList,
   FileText,
+  Search,
   Lock,
   Play,
   Save,
@@ -28,6 +29,7 @@ function DoctorDashboard() {
   const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
 
   const [filter, setFilter] = useState<Filter>("All");
+  const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
@@ -37,7 +39,19 @@ function DoctorDashboard() {
     if (filter === "Completed") return a.status === "Completed";
     return true;
   });
-  const queue = sortQueue(filtered);
+
+  // Real-time patient search: matches Student ID or chief complaint
+  // (case-insensitive), combinable with the status filter.
+  const query = search.trim().toLowerCase();
+  const searched = query
+    ? filtered.filter(
+        (a) =>
+          a.studentId.toLowerCase().includes(query) ||
+          a.chiefComplaint.toLowerCase().includes(query) ||
+          a.studentName.toLowerCase().includes(query),
+      )
+    : filtered;
+  const queue = sortQueue(searched);
 
   const selected = appointments.find((a) => a.id === selectedId) ?? null;
 
@@ -114,6 +128,29 @@ function DoctorDashboard() {
         </div>
       </div>
 
+      {/* Patient search */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search patient by Student ID, name or chief complaint…"
+          aria-label="Search patients"
+          className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 transition-colors hover:text-slate-600"
+          >
+            Clear
+          </button>
+        )}
+      </div>
+
       <div className="grid gap-5 lg:grid-cols-5">
         {/* Queue */}
         <Card className="lg:col-span-2">
@@ -124,7 +161,9 @@ function DoctorDashboard() {
 
           {queue.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">
-              No appointments in this view.
+              {query
+                ? `No patients match "${search.trim()}".`
+                : "No appointments in this view."}
             </p>
           ) : (
             <ul className="space-y-2">
