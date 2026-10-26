@@ -19,16 +19,21 @@ import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
 import { SYMPTOMS } from "@/lib/triage";
-import type { Appointment } from "@/lib/types";
+import type { Appointment, Urgency } from "@/lib/types";
 
 type Filter = "All" | "Active" | "Completed";
 
+type UrgencyFilter = "All" | Urgency;
+
 const FILTERS: Filter[] = ["All", "Active", "Completed"];
+
+const URGENCY_FILTERS: UrgencyFilter[] = ["All", "High", "Medium", "Low"];
 
 function DoctorDashboard() {
   const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
 
   const [filter, setFilter] = useState<Filter>("All");
+  const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>("All");
   const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
@@ -40,17 +45,23 @@ function DoctorDashboard() {
     return true;
   });
 
+  // Urgency filter: quickly narrow the queue to a priority group.
+  const byUrgency =
+    urgencyFilter === "All"
+      ? filtered
+      : filtered.filter((a) => a.urgency === urgencyFilter);
+
   // Real-time patient search: matches Student ID or chief complaint
-  // (case-insensitive), combinable with the status filter.
+  // (case-insensitive), combinable with the status and urgency filters.
   const query = search.trim().toLowerCase();
   const searched = query
-    ? filtered.filter(
+    ? byUrgency.filter(
         (a) =>
           a.studentId.toLowerCase().includes(query) ||
           a.chiefComplaint.toLowerCase().includes(query) ||
           a.studentName.toLowerCase().includes(query),
       )
-    : filtered;
+    : byUrgency;
   const queue = sortQueue(searched);
 
   const selected = appointments.find((a) => a.id === selectedId) ?? null;
@@ -110,21 +121,40 @@ function DoctorDashboard() {
         <p className="text-sm text-slate-500">
           Sorted by priority (High → Low), then earliest slot.
         </p>
-        <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                filter === f
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
+            Urgency
+            <select
+              value={urgencyFilter}
+              onChange={(e) =>
+                setUrgencyFilter(e.target.value as UrgencyFilter)
+              }
+              aria-label="Filter by urgency"
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
-              {f}
-            </button>
-          ))}
+              {URGENCY_FILTERS.map((u) => (
+                <option key={u} value={u}>
+                  {u === "All" ? "All priorities" : u}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  filter === f
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
