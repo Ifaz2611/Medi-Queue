@@ -3,10 +3,16 @@
 
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./config";
+import {
+  assertSupabaseConfigured,
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_URL,
+} from "./config";
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
+
+  assertSupabaseConfigured();
 
   const supabase = createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
     cookies: {

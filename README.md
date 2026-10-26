@@ -145,14 +145,41 @@ npm install
 Execute `schema.sql` inside your **Supabase SQL Editor** to provision tables, custom enums, partial unique indexes, Row-Level Security (RLS) policies, and the `trg_audit_immutable` trigger.
 
 ### 3. Environment Configuration
-Create a `.env.local` file in the root directory (never commit this file):
+
+Copy the template to `.env.local` in the **project root** (never commit this file):
+
+```bash
+cp .env.example .env.local
+```
+
+Then fill in your own Supabase project values. Grab the project URL and key from
+**Supabase Dashboard → Project Settings → API**:
 
 ```env
-NEXT_PUBLIC_SUPABASE_URL=[https://your-project-id.supabase.co](https://your-project-id.supabase.co)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
+# Required — URL and one of the two key names below.
+NEXT_PUBLIC_SUPABASE_URL=https://your-project-ref.supabase.co
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_your-key
+# NEXT_PUBLIC_SUPABASE_ANON_KEY=your-legacy-anon-key
+
+# Required for admin/seed operations (server only).
 SUPABASE_SECRET_KEY=your-service-role-secret-key
+
+# Required for encrypted clinical notes.
 FIELD_ENCRYPTION_KEY=your-64-char-hex-or-32-byte-base64-aes-256-key
 ```
+
+> **Important:** `.env.local` must be in the same folder as `package.json`.
+> After creating or changing it, stop and restart `npm run dev` — Next.js does
+> not hot-reload environment variables.
+
+> Blank lines like `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=` are ignored by the
+> app, so it is safe to keep both key names in the template and fill only one.
+
+> **Troubleshooting:** `Your project's URL and Key are required to create a
+> Supabase client` almost always means the file is misnamed or the dev server
+> was not restarted. The filename must be exactly **`.env.local`** (with the
+> leading dot) in the project root — not `env.local`, `.env.local.txt`, or a
+> copy inside `lib/`. Also make sure you ran `npm run dev` *after* saving it.
 
 ### 4. Run the Development Server
 ```bash

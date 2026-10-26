@@ -34,8 +34,9 @@ yarn-error.log*
 #md files 
 
 
-# env files (can opt-in for committing if needed)
+# env files (keep the template so new contributors can copy it)
 .env*
+!.env.example
 
 # vercel
 .vercel

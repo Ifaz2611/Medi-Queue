@@ -3,9 +3,15 @@
 
 import { cookies } from "next/headers";
 import { createServerClient } from "@supabase/ssr";
-import { SUPABASE_PUBLISHABLE_KEY, SUPABASE_URL } from "./config";
+import {
+  assertSupabaseConfigured,
+  SUPABASE_PUBLISHABLE_KEY,
+  SUPABASE_URL,
+} from "./config";
 
 export async function createServerSupabase() {
+  assertSupabaseConfigured();
+
   const cookieStore = await cookies();
 
   return createServerClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, {
