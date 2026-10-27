@@ -68,11 +68,12 @@ To keep the project simple, collaborative, and tailored for a university course 
   - Verify students and administrators receive `403 Forbidden` if attempting to access doctor endpoints.
   - Verify admin appointment list does not contain clinical complaints or notes.
   - Automated API verification: `npm run test:rbac` (22 passing tests). Results and source-review limitations: [RBAC QA sheet](docs/qa/rbac-verification.md).
-- [ ] **Manual Test Plan & Scenario Checklist:**
+- [x] **Manual Test Plan & Scenario Checklist:**
   - Create a test scenario document testing all 3 user roles:
     1. Student signs in $\rightarrow$ inputs symptoms $\rightarrow$ books slot.
     2. Doctor signs in $\rightarrow$ views sorted queue $\rightarrow$ writes encrypted notes $\rightarrow$ completes consultation.
     3. Admin signs in $\rightarrow$ reviews audit log $\rightarrow$ verifies immutability.
+  - Deliverable: [Manual test plan and execution checklist](docs/qa/manual-test-plan.md), covering all three roles, negative cases, encrypted storage, and transactional audit mutation probes. Manual execution results remain pending; the checklist does not claim a live security sign-off.
 
 ### Acceptance Criteria
 - Triage test functions execute and pass all boundary scenarios.
