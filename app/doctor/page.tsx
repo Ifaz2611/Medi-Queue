@@ -16,6 +16,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Card from "@/components/Card";
+import ConfirmModal from "@/components/ConfirmModal";
 import LifecycleStepper from "@/components/LifecycleStepper";
 import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
@@ -43,6 +44,9 @@ function DoctorDashboard() {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [confirmCompleteId, setConfirmCompleteId] = useState<string | null>(
+    null,
+  );
 
   const filtered = appointments.filter((a) => {
     if (filter === "Active") return a.status !== "Completed";
@@ -408,7 +412,7 @@ function DoctorDashboard() {
                 <button
                   type="button"
                   disabled={selected.status === "Completed"}
-                  onClick={() => updateStatus(selected.id, "Completed")}
+                  onClick={() => setConfirmCompleteId(selected.id)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <UserRound className="h-4 w-4" /> Mark Completed
@@ -418,6 +422,29 @@ function DoctorDashboard() {
           )}
         </div>
       </div>
+
+      {/* Completion confirmation */}
+      <ConfirmModal
+        open={confirmCompleteId !== null}
+        title="Mark as Completed?"
+        message={
+          <>
+            This will close the consultation for{" "}
+            <span className="font-semibold text-slate-700">
+              {appointments.find((a) => a.id === confirmCompleteId)
+                ?.studentName ?? "this patient"}
+            </span>{" "}
+            and remove them from the active queue. This action cannot be undone.
+          </>
+        }
+        confirmLabel="Mark Completed"
+        onConfirm={async () => {
+          const id = confirmCompleteId;
+          setConfirmCompleteId(null);
+          if (id) await updateStatus(id, "Completed");
+        }}
+        onCancel={() => setConfirmCompleteId(null)}
+      />
     </div>
   );
 }
