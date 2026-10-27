@@ -2,8 +2,13 @@
 
 import { useState } from "react";
 import {
+  Activity,
+  CalendarClock,
+  CheckCircle2,
   ClipboardList,
   FileText,
+  Flame,
+  Search,
   Lock,
   Play,
   Save,
@@ -11,33 +16,62 @@ import {
   UserRound,
 } from "lucide-react";
 import Card from "@/components/Card";
+import ConfirmModal from "@/components/ConfirmModal";
 import LifecycleStepper from "@/components/LifecycleStepper";
 import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
+import StatCards from "@/components/StatCards";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
 import { SYMPTOMS } from "@/lib/triage";
-import type { Appointment } from "@/lib/types";
+import type { Appointment, Urgency } from "@/lib/types";
 
 type Filter = "All" | "Active" | "Completed";
 
+type UrgencyFilter = "All" | Urgency;
+
 const FILTERS: Filter[] = ["All", "Active", "Completed"];
+
+const URGENCY_FILTERS: UrgencyFilter[] = ["All", "High", "Medium", "Low"];
 
 function DoctorDashboard() {
   const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
 
   const [filter, setFilter] = useState<Filter>("All");
+  const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>("All");
+  const [search, setSearch] = useState("");
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [draft, setDraft] = useState("");
   const [savedFlash, setSavedFlash] = useState(false);
+  const [confirmCompleteId, setConfirmCompleteId] = useState<string | null>(
+    null,
+  );
 
   const filtered = appointments.filter((a) => {
     if (filter === "Active") return a.status !== "Completed";
     if (filter === "Completed") return a.status === "Completed";
     return true;
   });
-  const queue = sortQueue(filtered);
+
+  // Urgency filter: quickly narrow the queue to a priority group.
+  const byUrgency =
+    urgencyFilter === "All"
+      ? filtered
+      : filtered.filter((a) => a.urgency === urgencyFilter);
+
+  // Real-time patient search: matches Student ID or chief complaint
+  // (case-insensitive), combinable with the status and urgency filters.
+  const query = search.trim().toLowerCase();
+  const searched = query
+    ? byUrgency.filter(
+        (a) =>
+          a.studentId.toLowerCase().includes(query) ||
+          a.chiefComplaint.toLowerCase().includes(query) ||
+          a.studentName.toLowerCase().includes(query),
+      )
+    : byUrgency;
+  const queue = sortQueue(searched);
 
   const selected = appointments.find((a) => a.id === selectedId) ?? null;
 
@@ -61,6 +95,44 @@ function DoctorDashboard() {
   const highCount = appointments.filter(
     (a) => a.urgency === "High" && a.status !== "Completed",
   ).length;
+  const completedCount = appointments.length - openCount;
+  const avgSeverity = appointments.length
+    ? (
+        appointments.reduce((sum, a) => sum + a.severity, 0) /
+        appointments.length
+      ).toFixed(1)
+    : "—";
+
+  const stats = [
+    {
+      label: "Total Appointments",
+      value: String(appointments.length),
+      hint: `${openCount} active · ${completedCount} completed`,
+      icon: CalendarClock,
+      tone: "bg-blue-50 text-blue-600",
+    },
+    {
+      label: "High Priority",
+      value: String(highCount),
+      hint: "High urgency, still in queue",
+      icon: Flame,
+      tone: "bg-rose-50 text-rose-600",
+    },
+    {
+      label: "Active vs Completed",
+      value: `${openCount}/${completedCount}`,
+      hint: "Current queue vs finished today",
+      icon: Activity,
+      tone: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Avg Severity",
+      value: avgSeverity,
+      hint: "Across all appointments (0–10)",
+      icon: CheckCircle2,
+      tone: "bg-emerald-50 text-emerald-600",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -92,26 +164,71 @@ function DoctorDashboard() {
         </div>
       </div>
 
+      {/* Clinic summary stats */}
+      <StatCards stats={stats} />
+
       <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="text-sm text-slate-500">
           Sorted by priority (High → Low), then earliest slot.
         </p>
-        <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              onClick={() => setFilter(f)}
-              className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
-                filter === f
-                  ? "bg-blue-600 text-white"
-                  : "text-slate-500 hover:text-slate-700"
-              }`}
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex items-center gap-2 text-xs font-medium text-slate-500">
+            Urgency
+            <select
+              value={urgencyFilter}
+              onChange={(e) =>
+                setUrgencyFilter(e.target.value as UrgencyFilter)
+              }
+              aria-label="Filter by urgency"
+              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
-              {f}
-            </button>
-          ))}
+              {URGENCY_FILTERS.map((u) => (
+                <option key={u} value={u}>
+                  {u === "All" ? "All priorities" : u}
+                </option>
+              ))}
+            </select>
+          </label>
+          <div className="flex rounded-lg border border-slate-200 bg-white p-0.5">
+            {FILTERS.map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                  filter === f
+                    ? "bg-blue-600 text-white"
+                    : "text-slate-500 hover:text-slate-700"
+                }`}
+              >
+                {f}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      {/* Patient search */}
+      <div className="relative">
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <input
+          type="search"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Search patient by Student ID, name or chief complaint…"
+          aria-label="Search patients"
+          className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md"
+        />
+        {search && (
+          <button
+            type="button"
+            onClick={() => setSearch("")}
+            aria-label="Clear search"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium text-slate-400 transition-colors hover:text-slate-600"
+          >
+            Clear
+          </button>
+        )}
       </div>
 
       <div className="grid gap-5 lg:grid-cols-5">
@@ -124,7 +241,9 @@ function DoctorDashboard() {
 
           {queue.length === 0 ? (
             <p className="py-6 text-center text-sm text-slate-400">
-              No appointments in this view.
+              {query
+                ? `No patients match "${search.trim()}".`
+                : "No appointments in this view."}
             </p>
           ) : (
             <ul className="space-y-2">
@@ -293,7 +412,7 @@ function DoctorDashboard() {
                 <button
                   type="button"
                   disabled={selected.status === "Completed"}
-                  onClick={() => updateStatus(selected.id, "Completed")}
+                  onClick={() => setConfirmCompleteId(selected.id)}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <UserRound className="h-4 w-4" /> Mark Completed
@@ -303,6 +422,29 @@ function DoctorDashboard() {
           )}
         </div>
       </div>
+
+      {/* Completion confirmation */}
+      <ConfirmModal
+        open={confirmCompleteId !== null}
+        title="Mark as Completed?"
+        message={
+          <>
+            This will close the consultation for{" "}
+            <span className="font-semibold text-slate-700">
+              {appointments.find((a) => a.id === confirmCompleteId)
+                ?.studentName ?? "this patient"}
+            </span>{" "}
+            and remove them from the active queue. This action cannot be undone.
+          </>
+        }
+        confirmLabel="Mark Completed"
+        onConfirm={async () => {
+          const id = confirmCompleteId;
+          setConfirmCompleteId(null);
+          if (id) await updateStatus(id, "Completed");
+        }}
+        onCancel={() => setConfirmCompleteId(null)}
+      />
     </div>
   );
 }
