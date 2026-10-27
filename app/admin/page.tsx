@@ -1,8 +1,17 @@
 "use client";
 
-import { RotateCcw, ShieldCheck, TableProperties } from "lucide-react";
+import {
+  Activity,
+  CalendarClock,
+  CheckCircle2,
+  Flame,
+  RotateCcw,
+  ShieldCheck,
+  TableProperties,
+} from "lucide-react";
 import Card from "@/components/Card";
 import RequireRole from "@/components/RequireRole";
+import StatCards from "@/components/StatCards";
 import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
@@ -24,6 +33,49 @@ function AdminDashboard() {
   const logs = [...auditLogs].sort((a, b) =>
     b.timestamp.localeCompare(a.timestamp),
   );
+
+  // Metadata-only metrics: derived from queue metadata the admin API
+  // already returns. No clinical fields (complaint/symptoms/severity/
+  // notes) are read or displayed — RBAC privacy boundary.
+  const total = appointments.length;
+  const completed = appointments.filter(
+    (a) => a.status === "Completed",
+  ).length;
+  const active = total - completed;
+  const highPriority = appointments.filter(
+    (a) => a.urgency === "High" && a.status !== "Completed",
+  ).length;
+
+  const stats = [
+    {
+      label: "Total Appointments",
+      value: String(total),
+      hint: `${active} active · ${completed} completed`,
+      icon: CalendarClock,
+      tone: "bg-slate-100 text-slate-600",
+    },
+    {
+      label: "High Priority in Queue",
+      value: String(highPriority),
+      hint: "High urgency, awaiting completion",
+      icon: Flame,
+      tone: "bg-rose-50 text-rose-600",
+    },
+    {
+      label: "Active vs Completed",
+      value: `${active}/${completed}`,
+      hint: "Live queue throughput",
+      icon: Activity,
+      tone: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Audit Events",
+      value: String(logs.length),
+      hint: "Immutable audit trail entries",
+      icon: CheckCircle2,
+      tone: "bg-emerald-50 text-emerald-600",
+    },
+  ];
 
   return (
     <div className="space-y-5">
@@ -55,6 +107,9 @@ function AdminDashboard() {
           encrypted clinical notes.
         </p>
       </div>
+
+      {/* Metadata-only clinic stats */}
+      <StatCards stats={stats} />
 
       {/* Queue metadata only */}
       <Card className="overflow-hidden p-0">
