@@ -2,8 +2,12 @@
 
 import { useState } from "react";
 import {
+  Activity,
+  CalendarClock,
+  CheckCircle2,
   ClipboardList,
   FileText,
+  Flame,
   Search,
   Lock,
   Play,
@@ -15,6 +19,7 @@ import Card from "@/components/Card";
 import LifecycleStepper from "@/components/LifecycleStepper";
 import RequireRole from "@/components/RequireRole";
 import StatusBadge from "@/components/StatusBadge";
+import StatCards from "@/components/StatCards";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
@@ -86,6 +91,44 @@ function DoctorDashboard() {
   const highCount = appointments.filter(
     (a) => a.urgency === "High" && a.status !== "Completed",
   ).length;
+  const completedCount = appointments.length - openCount;
+  const avgSeverity = appointments.length
+    ? (
+        appointments.reduce((sum, a) => sum + a.severity, 0) /
+        appointments.length
+      ).toFixed(1)
+    : "—";
+
+  const stats = [
+    {
+      label: "Total Appointments",
+      value: String(appointments.length),
+      hint: `${openCount} active · ${completedCount} completed`,
+      icon: CalendarClock,
+      tone: "bg-blue-50 text-blue-600",
+    },
+    {
+      label: "High Priority",
+      value: String(highCount),
+      hint: "High urgency, still in queue",
+      icon: Flame,
+      tone: "bg-rose-50 text-rose-600",
+    },
+    {
+      label: "Active vs Completed",
+      value: `${openCount}/${completedCount}`,
+      hint: "Current queue vs finished today",
+      icon: Activity,
+      tone: "bg-amber-50 text-amber-600",
+    },
+    {
+      label: "Avg Severity",
+      value: avgSeverity,
+      hint: "Across all appointments (0–10)",
+      icon: CheckCircle2,
+      tone: "bg-emerald-50 text-emerald-600",
+    },
+  ];
 
   return (
     <div className="space-y-6">
@@ -116,6 +159,9 @@ function DoctorDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Clinic summary stats */}
+      <StatCards stats={stats} />
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <p className="text-sm text-slate-500">
