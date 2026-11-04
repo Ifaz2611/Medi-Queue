@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import {
   Activity,
   CalendarClock,
@@ -10,6 +11,7 @@ import {
   TableProperties,
 } from "lucide-react";
 import Card from "@/components/Card";
+import ConfirmModal from "@/components/ConfirmModal";
 import RequireRole from "@/components/RequireRole";
 import StatCards from "@/components/StatCards";
 import StatusBadge from "@/components/StatusBadge";
@@ -29,6 +31,7 @@ function formatTime(iso: string): string {
 
 function AdminDashboard() {
   const { user, appointments, auditLogs, resetDemo, hydrated } = useStore();
+  const [confirmReset, setConfirmReset] = useState(false);
   const queue = sortQueue(appointments);
   const logs = [...auditLogs].sort((a, b) =>
     b.timestamp.localeCompare(a.timestamp),
@@ -93,7 +96,7 @@ function AdminDashboard() {
         </div>
         <button
           type="button"
-          onClick={resetDemo}
+          onClick={() => setConfirmReset(true)}
           className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
         >
           <RotateCcw className="h-4 w-4" /> Reset demo data
@@ -220,6 +223,26 @@ function AdminDashboard() {
           </table>
         </div>
       </Card>
+
+      {/* Demo reset confirmation */}
+      <ConfirmModal
+        open={confirmReset}
+        title="Reset demo data?"
+        tone="danger"
+        message={
+          <>
+            This will wipe all current appointments and audit events, then
+            reseed the demo dataset. Useful before a presentation, but it
+            cannot be undone.
+          </>
+        }
+        confirmLabel="Reset demo data"
+        onConfirm={async () => {
+          setConfirmReset(false);
+          await resetDemo();
+        }}
+        onCancel={() => setConfirmReset(false)}
+      />
     </div>
   );
 }
