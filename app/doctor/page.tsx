@@ -24,6 +24,7 @@ import StatCards from "@/components/StatCards";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { SYMPTOMS } from "@/lib/triage";
 import type { Appointment, Urgency } from "@/lib/types";
 
@@ -37,6 +38,7 @@ const URGENCY_FILTERS: UrgencyFilter[] = ["All", "High", "Medium", "Low"];
 
 function DoctorDashboard() {
   const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
+  const toast = useToast();
 
   const [filter, setFilter] = useState<Filter>("All");
   const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>("All");
@@ -85,6 +87,7 @@ function DoctorDashboard() {
     if (!selected) return;
     await saveNotes(selected.id, draft);
     setSavedFlash(true);
+    toast.success("Clinical notes saved and encrypted.");
     window.setTimeout(() => setSavedFlash(false), 2000);
   };
 
@@ -441,7 +444,10 @@ function DoctorDashboard() {
         onConfirm={async () => {
           const id = confirmCompleteId;
           setConfirmCompleteId(null);
-          if (id) await updateStatus(id, "Completed");
+          if (id) {
+            await updateStatus(id, "Completed");
+            toast.success("Appointment marked as completed.");
+          }
         }}
         onCancel={() => setConfirmCompleteId(null)}
       />

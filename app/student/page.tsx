@@ -19,10 +19,12 @@ import UrgencyBadge from "@/components/UrgencyBadge";
 import { PRIORITY_SLOTS, SLOTS } from "@/lib/mockData";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { SYMPTOMS, WEIGHTS, triage } from "@/lib/triage";
 
 function StudentPortal() {
   const { user, bookSlot, isSlotAvailable, appointments } = useStore();
+  const toast = useToast();
 
   const studentName = user?.name ?? "";
   const studentId = user?.id ?? "";
@@ -63,9 +65,11 @@ function StudentPortal() {
     );
     if (!response.ok) {
       setError(response.reason ?? "Unable to book this slot.");
+      toast.error(response.reason ?? "Unable to book this slot.");
       return;
     }
     setBookedId(response.appointment!.id);
+    toast.success(`Appointment booked for ${response.appointment!.slot}`);
     setSelectedSlot(null);
     setChiefComplaint("");
     setSymptoms([]);

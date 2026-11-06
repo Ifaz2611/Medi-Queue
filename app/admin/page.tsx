@@ -16,6 +16,7 @@ import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -29,6 +30,7 @@ function formatTime(iso: string): string {
 
 function AdminDashboard() {
   const { user, appointments, auditLogs, resetDemo, hydrated } = useStore();
+  const toast = useToast();
   const queue = sortQueue(appointments);
   const logs = [...auditLogs].sort((a, b) =>
     b.timestamp.localeCompare(a.timestamp),
@@ -93,7 +95,10 @@ function AdminDashboard() {
         </div>
         <button
           type="button"
-          onClick={resetDemo}
+          onClick={async () => {
+            await resetDemo();
+            toast.success("Demo data reset.");
+          }}
           className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
         >
           <RotateCcw className="h-4 w-4" /> Reset demo data
