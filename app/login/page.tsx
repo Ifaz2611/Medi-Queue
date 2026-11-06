@@ -163,7 +163,8 @@ function LoginContent() {
         return;
       }
 
-      router.replace(ROLE_HOME[result.user.role as Role]);
+      setLoading(false);
+       router.replace(ROLE_HOME[result.user.role as Role]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
       setLoading(false);
@@ -212,7 +213,8 @@ function LoginContent() {
       }
 
       setSuccess("Account created. Redirecting...");
-      router.replace(ROLE_HOME[result.user.role as Role]);
+      setLoading(false);
+       router.replace(ROLE_HOME[result.user.role as Role]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred.");
       setLoading(false);
