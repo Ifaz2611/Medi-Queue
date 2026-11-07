@@ -122,7 +122,8 @@ function AdminDashboard() {
             Appointment Queue (metadata)
           </h2>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop: table view */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-400">
               <tr>
@@ -161,6 +162,29 @@ function AdminDashboard() {
             </tbody>
           </table>
         </div>
+        {/* Mobile: card view */}
+        <div className="divide-y divide-slate-100 md:hidden">
+          {queue.length === 0 ? (
+            <p className="px-5 py-6 text-center text-sm text-slate-400">
+              No appointments.
+            </p>
+          ) : (
+            queue.map((a) => (
+              <div key={a.id} className="space-y-2 px-5 py-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm font-semibold text-slate-700">
+                    {a.studentId}
+                  </span>
+                  <UrgencyBadge urgency={a.urgency} />
+                </div>
+                <div className="flex items-center justify-between gap-2">
+                  <span className="text-sm text-slate-500">{a.slot}</span>
+                  <StatusBadge status={a.status} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       </Card>
 
       {/* Immutable audit log */}
@@ -174,7 +198,8 @@ function AdminDashboard() {
           </div>
           <span className="text-xs text-slate-400">read-only</span>
         </div>
-        <div className="overflow-x-auto">
+        {/* Desktop: table view */}
+        <div className="hidden overflow-x-auto md:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-400">
               <tr>
@@ -221,6 +246,35 @@ function AdminDashboard() {
               )}
             </tbody>
           </table>
+        </div>
+        {/* Mobile: card view */}
+        <div className="divide-y divide-slate-100 md:hidden">
+          {!hydrated || logs.length === 0 ? (
+            <p className="px-5 py-6 text-center text-sm text-slate-400">
+              {hydrated ? "No events recorded." : "Loading audit trail…"}
+            </p>
+          ) : (
+            logs.map((log) => (
+              <div key={log.id} className="space-y-1.5 px-5 py-3.5">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-medium text-slate-700">
+                    {log.userId}
+                  </span>
+                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase text-slate-500">
+                    {log.role}
+                  </span>
+                </div>
+                <p className="text-sm text-slate-600">{log.action}</p>
+                <p className="font-mono text-xs text-slate-400">
+                  {log.resourceId}
+                </p>
+                <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
+                  <span>{formatTime(log.timestamp)}</span>
+                  <span className="font-mono">{log.ipAddress}</span>
+                </div>
+              </div>
+            ))
+          )}
         </div>
       </Card>
 
