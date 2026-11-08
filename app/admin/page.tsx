@@ -97,7 +97,7 @@ function AdminDashboard() {
         <button
           type="button"
           onClick={() => setConfirmReset(true)}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-3 py-1.5 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-medium text-white backdrop-blur transition-colors hover:bg-white/25"
         >
           <RotateCcw className="h-4 w-4" /> Reset demo data
         </button>

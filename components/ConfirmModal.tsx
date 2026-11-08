@@ -61,7 +61,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onCancel}
             aria-label="Close dialog"
-            className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
+            className="rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
           >
             <X className="h-4 w-4" />
           </button>
@@ -71,7 +71,7 @@ export default function ConfirmModal({
           <button
             type="button"
             onClick={onCancel}
-            className="rounded-lg border border-slate-200 px-3.5 py-1.5 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
+            className="rounded-lg border border-slate-200 px-3.5 py-2 text-sm font-semibold text-slate-600 transition-colors hover:bg-slate-50"
           >
             {cancelLabel}
           </button>
@@ -79,7 +79,7 @@ export default function ConfirmModal({
             type="button"
             onClick={onConfirm}
             autoFocus
-            className={`rounded-lg px-3.5 py-1.5 text-sm font-semibold text-white transition-colors ${confirmTone}`}
+            className={`rounded-lg px-3.5 py-2 text-sm font-semibold text-white transition-colors ${confirmTone}`}
           >
             {confirmLabel}
           </button>

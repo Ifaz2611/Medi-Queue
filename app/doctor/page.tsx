@@ -180,7 +180,7 @@ function DoctorDashboard() {
                 setUrgencyFilter(e.target.value as UrgencyFilter)
               }
               aria-label="Filter by urgency"
-              className="rounded-lg border border-slate-200 bg-white px-2.5 py-1.5 text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+              className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700 outline-none transition-colors focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
             >
               {URGENCY_FILTERS.map((u) => (
                 <option key={u} value={u}>
@@ -195,7 +195,7 @@ function DoctorDashboard() {
                 key={f}
                 type="button"
                 onClick={() => setFilter(f)}
-                className={`rounded-md px-3 py-1.5 text-xs font-semibold transition-colors ${
+                className={`rounded-md px-3.5 py-2 text-xs font-semibold transition-colors ${
                   filter === f
                     ? "bg-blue-600 text-white"
                     : "text-slate-500 hover:text-slate-700"
@@ -217,7 +217,7 @@ function DoctorDashboard() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search patient by Student ID, name or chief complaint…"
           aria-label="Search patients"
-          className="w-full rounded-lg border border-slate-200 bg-white py-2 pl-9 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md"
+          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md"
         />
         {search && (
           <button
@@ -384,7 +384,7 @@ function DoctorDashboard() {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                   >
                     <Save className="h-4 w-4" /> Save Notes
                   </button>
@@ -405,7 +405,7 @@ function DoctorDashboard() {
                     selected.status === "Completed"
                   }
                   onClick={() => updateStatus(selected.id, "In-Consultation")}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-3 py-1.5 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-semibold text-amber-700 transition-colors hover:bg-amber-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <Play className="h-4 w-4" /> Start Consultation
                 </button>
@@ -413,7 +413,7 @@ function DoctorDashboard() {
                   type="button"
                   disabled={selected.status === "Completed"}
                   onClick={() => setConfirmCompleteId(selected.id)}
-                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
+                  className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2.5 text-sm font-semibold text-emerald-700 transition-colors hover:bg-emerald-100 disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   <UserRound className="h-4 w-4" /> Mark Completed
                 </button>
