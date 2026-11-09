@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import Snowfall from "react-snowfall";
 import {
   Check,
   CheckCircle2,
@@ -908,14 +909,27 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 shadow-xs">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-        </div>
-      }
-    >
-      <LoginContent />
-    </Suspense>
+    <>
+      {/* Decorative snowfall over the sign-in page */}
+      <div className="pointer-events-none fixed inset-0 z-20" aria-hidden="true">
+        <Snowfall
+          color="rgba(148, 163, 184, 0.75)"
+          snowflakeCount={90}
+          radius={[0.5, 2.5]}
+          speed={[0.5, 1.4]}
+          wind={[-0.5, 1]}
+        />
+      </div>
+
+      <Suspense
+        fallback={
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 shadow-xs">
+            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          </div>
+        }
+      >
+        <LoginContent />
+      </Suspense>
+    </>
   );
 }
