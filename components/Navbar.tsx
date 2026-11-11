@@ -45,7 +45,7 @@ export default function Navbar() {
 
   return (
     <header className="sticky top-0 z-20 border-b border-slate-200 bg-white/90 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
+      <div className="mx-auto flex max-w-6xl flex-wrap items-center gap-x-2 gap-y-2 px-4 py-3 sm:gap-x-4">
         <Link href={user ? ROLE_NAV[user.role][0].href : "/login"} className="flex items-center gap-2">
           <span className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-600 text-white">
             <HeartPulse className="h-4.5 w-4.5" />
@@ -61,7 +61,7 @@ export default function Navbar() {
         />
         <div className="hidden items-center gap-2 sm:flex">
           <IubLogo className="h-7 w-auto" />
-          <span className="hidden text-[11px] leading-tight text-slate-400 md:block">
+          <span className="hidden text-[11px] leading-tight text-slate-400 lg:block">
             In collaboration with
             <br />
             <span className="font-medium text-slate-600">
@@ -78,7 +78,7 @@ export default function Navbar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium transition-colors ${
+                className={`flex items-center gap-1.5 rounded-md px-2 py-2 text-sm font-medium transition-colors sm:px-2.5 ${
                   active
                     ? "bg-blue-50 text-blue-700"
                     : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
@@ -91,7 +91,7 @@ export default function Navbar() {
           })}
         </nav>
 
-        <div className="ml-auto flex items-center gap-3">
+        <div className="ml-auto flex items-center gap-2 sm:gap-3">
           {user && (
             <div className="flex items-center gap-2.5">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-100 text-sm font-bold text-blue-700">
@@ -110,7 +110,8 @@ export default function Navbar() {
           <button
             type="button"
             onClick={handleLogout}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-1.5 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50"
+            aria-label="Sign out"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-slate-200 px-2.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 sm:px-3"
           >
             <LogOut className="h-4 w-4" />
             <span className="hidden sm:inline">Sign out</span>

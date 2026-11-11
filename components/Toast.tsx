@@ -31,7 +31,7 @@ const VARIANT_ICON: Record<ToastItem["variant"], typeof CheckCircle2> = {
 export default function ToastContainer({ toasts, onDismiss }: ToastContainerProps) {
   return (
     <div
-      className="pointer-events-none fixed left-1/2 top-6 z-[100] flex w-full max-w-md -translate-x-1/2 flex-col gap-3"
+      className="pointer-events-none fixed left-1/2 top-6 z-[100] flex w-full max-w-md -translate-x-1/2 flex-col gap-3 px-4"
       aria-live="polite"
     >
       {toasts.map((toast) => {
