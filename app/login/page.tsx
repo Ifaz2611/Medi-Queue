@@ -273,7 +273,7 @@ function LoginContent() {
         {/* =========================================================
             LEFT SIDE
         ========================================================= */}
-        <div className="order-2 flex min-w-0 flex-col justify-between border-b border-slate-200 bg-slate-50/70 p-6 sm:p-10 lg:order-1 lg:border-r lg:border-b-0 lg:p-12">
+        <div className="order-1 flex min-w-0 flex-col justify-between border-b border-slate-200 bg-slate-50/70 p-6 sm:p-10 lg:order-1 lg:border-r lg:border-b-0 lg:p-12">
 
           {/* Header */}
           <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
@@ -376,7 +376,7 @@ function LoginContent() {
         {/* =========================================================
             RIGHT SIDE: AUTHENTICATION FORM
         ========================================================= */}
-        <div className="order-1 flex min-w-0 flex-col justify-center p-6 sm:p-10 lg:order-2 lg:p-12">
+        <div className="order-2 flex min-w-0 flex-col justify-center p-6 sm:p-10 lg:order-2 lg:p-12">
           <div className="w-full">
 
             {/* Mode Selector Tabs */}
