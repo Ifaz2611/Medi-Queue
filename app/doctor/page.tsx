@@ -11,6 +11,7 @@ import {
   Search,
   Lock,
   Play,
+  Printer,
   Save,
   Stethoscope,
   UserRound,
@@ -136,7 +137,7 @@ function DoctorDashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-6 text-white shadow-sm">
+      <div className="no-print flex flex-wrap items-center justify-between gap-4 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-500 p-6 text-white shadow-sm">
         <div className="flex items-center gap-3">
           <span className="flex h-12 w-12 items-center justify-center rounded-xl bg-white/15 backdrop-blur">
             <Stethoscope className="h-6 w-6" />
@@ -148,7 +149,14 @@ function DoctorDashboard() {
             <h1 className="mt-0.5 text-2xl font-bold">{user?.name}</h1>
           </div>
         </div>
-        <div className="flex gap-3">
+        <div className="flex flex-wrap items-center gap-3">
+          <button
+            type="button"
+            onClick={() => window.print()}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-white/15 px-4 py-2.5 text-sm font-semibold text-white backdrop-blur transition-colors hover:bg-white/25"
+          >
+            <Printer className="h-4 w-4" /> Print Schedule
+          </button>
           <div className="rounded-xl bg-white/15 px-4 py-2 text-center backdrop-blur">
             <p className="text-2xl font-bold">{openCount}</p>
             <p className="text-[11px] uppercase tracking-wide text-emerald-100">
@@ -165,9 +173,11 @@ function DoctorDashboard() {
       </div>
 
       {/* Clinic summary stats */}
-      <StatCards stats={stats} />
+      <div className="no-print">
+        <StatCards stats={stats} />
+      </div>
 
-      <div className="flex flex-wrap items-end justify-between gap-3">
+      <div className="no-print flex flex-wrap items-end justify-between gap-3">
         <p className="text-sm text-slate-500">
           Sorted by priority (High → Low), then earliest slot.
         </p>
@@ -209,7 +219,7 @@ function DoctorDashboard() {
       </div>
 
       {/* Patient search */}
-      <div className="relative">
+      <div className="no-print relative">
         <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
         <input
           type="search"
@@ -231,7 +241,7 @@ function DoctorDashboard() {
         )}
       </div>
 
-      <div className="grid gap-5 lg:grid-cols-5">
+      <div className="no-print grid gap-5 lg:grid-cols-5">
         {/* Queue */}
         <Card className="lg:col-span-2">
           <div className="mb-3 flex items-center gap-2">
@@ -424,7 +434,8 @@ function DoctorDashboard() {
       </div>
 
       {/* Completion confirmation */}
-      <ConfirmModal
+      <div className="no-print">
+        <ConfirmModal
         open={confirmCompleteId !== null}
         title="Mark as Completed?"
         message={
@@ -444,7 +455,52 @@ function DoctorDashboard() {
           if (id) await updateStatus(id, "Completed");
         }}
         onCancel={() => setConfirmCompleteId(null)}
-      />
+        />
+      </div>
+
+      {/* Print-only daily schedule */}
+      <div className="print-schedule hidden">
+        <p className="print-title">MediQueue — Daily Patient Schedule</p>
+        <p className="print-meta">
+          {user?.name} · {new Date().toLocaleDateString(undefined, {
+            weekday: "long",
+            year: "numeric",
+            month: "long",
+            day: "numeric",
+          })}
+          · {appointments.length} appointments · {highCount} high priority
+        </p>
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Slot</th>
+              <th>Student ID</th>
+              <th>Patient</th>
+              <th>Urgency</th>
+              <th>Score</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {sortQueue(appointments).map((a, i) => (
+              <tr key={a.id}>
+                <td>{i + 1}</td>
+                <td>{a.slot}</td>
+                <td>{a.studentId}</td>
+                <td>{a.studentName}</td>
+                <td>{a.urgency}</td>
+                <td>{a.triageScore}</td>
+                <td>{a.status}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        <p className="print-footer">
+          Sorted by priority (High → Low), then earliest slot. Clinical notes
+          are excluded from print for patient privacy.
+        </p>
+      </div>
     </div>
   );
 }

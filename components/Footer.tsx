@@ -8,7 +8,7 @@ export default function Footer() {
   if (pathname === "/" || pathname === "/login") return null;
 
   return (
-    <footer className="border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
+    <footer className="no-print border-t border-slate-200 bg-white py-4 text-center text-xs text-slate-400">
       <div className="mx-auto flex max-w-6xl flex-col items-center justify-center gap-2 px-4 sm:flex-row sm:gap-3">
         <span>
           MediQueue · Campus Clinic Appointment &amp; Triage System · MVP Demo

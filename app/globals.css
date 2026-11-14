@@ -17,3 +17,61 @@ body {
   color: var(--foreground);
   font-family: var(--font-geist-sans), Arial, Helvetica, sans-serif;
 }
+
+/* Print view: doctor daily schedule (Member 2 — Day 9).
+   Only .print-schedule and its children are printed; the rest of the
+   app UI (navbar, filters, cards) is hidden via .no-print. */
+@media print {
+  body {
+    background: #fff !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  .print-schedule {
+    display: block !important;
+  }
+
+  .print-schedule table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 12pt;
+  }
+
+  .print-schedule th,
+  .print-schedule td {
+    border: 1px solid #cbd5e1;
+    padding: 6px 10px;
+    text-align: left;
+  }
+
+  .print-schedule th {
+    background: #f1f5f9 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .print-schedule .print-title {
+    font-size: 16pt;
+    font-weight: 700;
+    margin-bottom: 4px;
+  }
+
+  .print-schedule .print-meta {
+    font-size: 10pt;
+    color: #475569;
+    margin-bottom: 16px;
+  }
+
+  .print-schedule .print-footer {
+    margin-top: 24px;
+    font-size: 9pt;
+    color: #94a3b8;
+  }
+
+  @page {
+    margin: 15mm;
+  }
+}
