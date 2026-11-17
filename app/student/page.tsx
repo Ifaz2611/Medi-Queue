@@ -233,12 +233,12 @@ function StudentPortal() {
             </p>
           </div>
 
-          <Card>
+          <Card className="border-blue-300 bg-blue-100">
             <div className="mb-1 flex items-center gap-2">
-              <CalendarDays className="h-4 w-4 text-slate-400" />
-              <h2 className="font-semibold text-slate-800">Book a slot</h2>
+              <CalendarDays className="h-4 w-4 text-blue-600" />
+              <h2 className="font-semibold text-blue-900">Book a slot</h2>
             </div>
-            <p className="mb-3 text-xs text-slate-500">
+            <p className="mb-3 text-xs text-blue-700">
               Today&apos;s available slots · earliest first
             </p>
 
