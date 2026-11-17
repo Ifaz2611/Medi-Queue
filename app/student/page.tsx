@@ -69,7 +69,9 @@ function StudentPortal() {
       return;
     }
     setBookedId(response.appointment!.id);
-    toast.success(`Appointment booked for ${response.appointment!.slot}`);
+    toast.success(
+      `Appointment booked for ${response.appointment!.slot} (${response.appointment!.urgency} priority).`,
+    );
     setSelectedSlot(null);
     setChiefComplaint("");
     setSymptoms([]);
@@ -159,7 +161,7 @@ function StudentPortal() {
                 return (
                   <label
                     key={symptom.key}
-                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2 text-sm transition-colors ${
+                    className={`flex cursor-pointer items-center gap-2 rounded-lg border px-3 py-2.5 text-sm transition-colors ${
                       checked
                         ? "border-blue-300 bg-blue-50 text-blue-700"
                         : "border-slate-200 text-slate-600 hover:bg-slate-50"
@@ -253,7 +255,7 @@ function StudentPortal() {
                     type="button"
                     disabled={disabled}
                     onClick={() => setSelectedSlot(slot)}
-                    className={`relative rounded-lg border px-2 py-2 text-sm font-medium transition-colors ${
+                    className={`relative rounded-lg border px-2 py-2.5 text-sm font-medium transition-colors ${
                       isSelected
                         ? "border-blue-500 bg-blue-600 text-white"
                         : disabled
@@ -296,7 +298,7 @@ function StudentPortal() {
             <button
               type="button"
               onClick={handleBook}
-              className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+              className="mt-4 w-full rounded-lg bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
             >
               Confirm Booking
             </button>
