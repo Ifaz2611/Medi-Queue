@@ -48,7 +48,7 @@ export default function RequireRole({
           You are signed in as a {ROLE_LABEL[user.role]} and cannot view this
           area.
         </p>
-        <div className="mt-5 flex gap-2">
+        <div className="mt-5 flex flex-wrap justify-center gap-2">
           <Link
             href={ROLE_HOME[user.role]}
             className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700"

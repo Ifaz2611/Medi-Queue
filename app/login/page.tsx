@@ -3,6 +3,7 @@
 import { Suspense, useEffect, useState } from "react";
 import Image from "next/image";
 import { useRouter, useSearchParams } from "next/navigation";
+import Snowfall from "react-snowfall";
 import {
   Check,
   CheckCircle2,
@@ -163,7 +164,8 @@ function LoginContent() {
         return;
       }
 
-      router.replace(ROLE_HOME[result.user.role as Role]);
+      setLoading(false);
+       router.replace(ROLE_HOME[result.user.role as Role]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Unable to sign in.");
       setLoading(false);
@@ -212,7 +214,8 @@ function LoginContent() {
       }
 
       setSuccess("Account created. Redirecting...");
-      router.replace(ROLE_HOME[result.user.role as Role]);
+      setLoading(false);
+       router.replace(ROLE_HOME[result.user.role as Role]);
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "An error occurred.");
       setLoading(false);
@@ -270,10 +273,10 @@ function LoginContent() {
         {/* =========================================================
             LEFT SIDE
         ========================================================= */}
-        <div className="flex flex-col justify-between border-b border-slate-200 bg-slate-50/70 p-8 sm:p-10 lg:border-r lg:border-b-0 lg:p-12">
+        <div className="order-1 flex min-w-0 flex-col justify-between border-b border-slate-200 bg-slate-50/70 p-6 sm:p-10 lg:order-1 lg:border-r lg:border-b-0 lg:p-12">
 
           {/* Header */}
-          <div className="flex items-center justify-between gap-4">
+          <div className="flex flex-wrap items-center justify-between gap-2 sm:gap-4">
             <div className="flex items-center gap-2.5">
               <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-white">
                 <HeartPulse className="h-4.5 w-4.5" />
@@ -290,7 +293,7 @@ function LoginContent() {
               </div>
             </div>
 
-            <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600">
+            <span className="inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap rounded-full border border-slate-200 bg-white px-2.5 py-1 text-[11px] font-medium text-slate-600">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               Triage Online
             </span>
@@ -347,7 +350,7 @@ function LoginContent() {
           {/* =====================================================
               IUB PARTNER FOOTER
           ===================================================== */}
-          <div className="flex items-center justify-between gap-4 border-t border-slate-200/70 pt-4 text-[11px] text-slate-500">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-t border-slate-200/70 pt-4 text-[11px] text-slate-500 sm:gap-4">
 
             <div className="flex items-center gap-2.5">
               <IubLogo className="h-6 w-auto" />
@@ -373,7 +376,7 @@ function LoginContent() {
         {/* =========================================================
             RIGHT SIDE: AUTHENTICATION FORM
         ========================================================= */}
-        <div className="flex flex-col justify-center p-8 sm:p-10 lg:p-12">
+        <div className="order-2 flex min-w-0 flex-col justify-center p-6 sm:p-10 lg:order-2 lg:p-12">
           <div className="w-full">
 
             {/* Mode Selector Tabs */}
@@ -482,7 +485,7 @@ function LoginContent() {
                       Quick Demo:
                     </span>
 
-                    <div className="flex items-center gap-1.5">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       {CREDENTIALS.map((cred, index) => {
                         const isSelected = activeDemo === cred.id;
 
@@ -906,14 +909,27 @@ function LoginContent() {
 
 export default function LoginPage() {
   return (
-    <Suspense
-      fallback={
-        <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 shadow-xs">
-          <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
-        </div>
-      }
-    >
-      <LoginContent />
-    </Suspense>
+    <>
+      {/* Decorative snowfall over the sign-in page */}
+      <div className="pointer-events-none fixed inset-0 z-20" aria-hidden="true">
+        <Snowfall
+          color="rgba(148, 163, 184, 0.75)"
+          snowflakeCount={90}
+          radius={[0.5, 2.5]}
+          speed={[0.5, 1.4]}
+          wind={[-0.5, 1]}
+        />
+      </div>
+
+      <Suspense
+        fallback={
+          <div className="mx-auto flex w-full max-w-5xl items-center justify-center rounded-2xl border border-slate-200 bg-white p-16 shadow-xs">
+            <Loader2 className="h-5 w-5 animate-spin text-slate-400" />
+          </div>
+        }
+      >
+        <LoginContent />
+      </Suspense>
+    </>
   );
 }

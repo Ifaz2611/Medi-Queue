@@ -25,6 +25,7 @@ import StatCards from "@/components/StatCards";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { SYMPTOMS } from "@/lib/triage";
 import type { Appointment, Urgency } from "@/lib/types";
 
@@ -38,6 +39,7 @@ const URGENCY_FILTERS: UrgencyFilter[] = ["All", "High", "Medium", "Low"];
 
 function DoctorDashboard() {
   const { user, appointments, updateStatus, saveNotes, readNotes } = useStore();
+  const toast = useToast();
 
   const [filter, setFilter] = useState<Filter>("All");
   const [urgencyFilter, setUrgencyFilter] = useState<UrgencyFilter>("All");
@@ -86,6 +88,7 @@ function DoctorDashboard() {
     if (!selected) return;
     await saveNotes(selected.id, draft);
     setSavedFlash(true);
+    toast.success("Clinical notes saved and encrypted.");
     window.setTimeout(() => setSavedFlash(false), 2000);
   };
 
@@ -227,7 +230,9 @@ function DoctorDashboard() {
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search patient by Student ID, name or chief complaint…"
           aria-label="Search patients"
-          className="w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 pr-3 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md"
+          className={`w-full rounded-lg border border-slate-200 bg-white py-2.5 pl-9 text-sm text-slate-700 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 sm:max-w-md ${
+            search ? "pr-16" : "pr-3"
+          }`}
         />
         {search && (
           <button
@@ -243,7 +248,7 @@ function DoctorDashboard() {
 
       <div className="no-print grid gap-5 lg:grid-cols-5">
         {/* Queue */}
-        <Card className="lg:col-span-2">
+        <Card className="min-w-0 lg:col-span-2">
           <div className="mb-3 flex items-center gap-2">
             <ClipboardList className="h-4 w-4 text-slate-400" />
             <h2 className="font-semibold text-slate-800">Queue</h2>
@@ -270,7 +275,7 @@ function DoctorDashboard() {
                           : "border-slate-100 hover:border-slate-200 hover:bg-slate-50"
                       }`}
                     >
-                      <div className="flex items-center justify-between gap-2">
+                      <div className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-sm font-semibold text-slate-700">
                           {a.slot}
                           <span className="ml-2 font-normal text-slate-600">
@@ -279,7 +284,7 @@ function DoctorDashboard() {
                         </span>
                         <UrgencyBadge urgency={a.urgency} />
                       </div>
-                      <div className="mt-1 flex items-center justify-between gap-2 text-[11px] text-slate-400">
+                      <div className="mt-1 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
                         <span>
                           {a.studentId} · score {a.triageScore}
                         </span>
@@ -294,7 +299,7 @@ function DoctorDashboard() {
         </Card>
 
         {/* Consultation */}
-        <div className="lg:col-span-3">
+        <div className="min-w-0 lg:col-span-3">
           {!selected ? (
             <Card className="flex h-full flex-col items-center justify-center py-16 text-center">
               <Stethoscope className="h-8 w-8 text-slate-300" />
@@ -386,7 +391,7 @@ function DoctorDashboard() {
                   placeholder="Record diagnosis, prescriptions and follow-up plan…"
                   className="w-full resize-none rounded-lg border border-slate-200 px-3 py-2 text-sm outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
                 />
-                <div className="mt-2 flex items-center justify-between gap-3">
+                <div className="mt-2 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between sm:gap-3">
                   <p className="flex items-center gap-1 text-[11px] text-slate-400">
                     <Lock className="h-3 w-3" /> Field-level AES-256
                     (simulated) before save
@@ -394,7 +399,7 @@ function DoctorDashboard() {
                   <button
                     type="button"
                     onClick={handleSave}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700"
+                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-700 sm:w-auto"
                   >
                     <Save className="h-4 w-4" /> Save Notes
                   </button>
@@ -452,7 +457,10 @@ function DoctorDashboard() {
         onConfirm={async () => {
           const id = confirmCompleteId;
           setConfirmCompleteId(null);
-          if (id) await updateStatus(id, "Completed");
+          if (id) {
+            await updateStatus(id, "Completed");
+            toast.success("Appointment marked as completed.");
+          }
         }}
         onCancel={() => setConfirmCompleteId(null)}
         />

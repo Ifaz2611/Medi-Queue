@@ -18,6 +18,7 @@ import StatusBadge from "@/components/StatusBadge";
 import UrgencyBadge from "@/components/UrgencyBadge";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 
 function formatTime(iso: string): string {
   return new Date(iso).toLocaleString(undefined, {
@@ -32,6 +33,7 @@ function formatTime(iso: string): string {
 function AdminDashboard() {
   const { user, appointments, auditLogs, resetDemo, hydrated } = useStore();
   const [confirmReset, setConfirmReset] = useState(false);
+  const toast = useToast();
   const queue = sortQueue(appointments);
   const logs = [...auditLogs].sort((a, b) =>
     b.timestamp.localeCompare(a.timestamp),
@@ -122,8 +124,38 @@ function AdminDashboard() {
             Appointment Queue (metadata)
           </h2>
         </div>
-        {/* Desktop: table view */}
-        <div className="hidden overflow-x-auto md:block">
+        {/* Mobile: stacked cards so metadata stays readable without
+            horizontal scrolling. */}
+        <div className="divide-y divide-slate-100 lg:hidden">
+          {queue.length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-slate-400">
+              No appointments.
+            </p>
+          ) : (
+            queue.map((a) => (
+              <div
+                key={a.id}
+                className="flex items-start justify-between gap-3 px-4 py-3"
+              >
+                <div className="min-w-0">
+                  <p className="truncate font-mono text-[11px] text-slate-400">
+                    {a.studentId}
+                  </p>
+                  <p className="mt-0.5 text-sm font-semibold text-slate-700">
+                    Slot {a.slot}
+                  </p>
+                </div>
+                <div className="flex shrink-0 flex-col items-end gap-1.5">
+                  <UrgencyBadge urgency={a.urgency} />
+                  <StatusBadge status={a.status} />
+                </div>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop (lg+): table view */}
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-400">
               <tr>
@@ -162,29 +194,6 @@ function AdminDashboard() {
             </tbody>
           </table>
         </div>
-        {/* Mobile: card view */}
-        <div className="divide-y divide-slate-100 md:hidden">
-          {queue.length === 0 ? (
-            <p className="px-5 py-6 text-center text-sm text-slate-400">
-              No appointments.
-            </p>
-          ) : (
-            queue.map((a) => (
-              <div key={a.id} className="space-y-2 px-5 py-3.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm font-semibold text-slate-700">
-                    {a.studentId}
-                  </span>
-                  <UrgencyBadge urgency={a.urgency} />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-slate-500">{a.slot}</span>
-                  <StatusBadge status={a.status} />
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </Card>
 
       {/* Immutable audit log */}
@@ -198,8 +207,44 @@ function AdminDashboard() {
           </div>
           <span className="text-xs text-slate-400">read-only</span>
         </div>
-        {/* Desktop: table view */}
-        <div className="hidden overflow-x-auto md:block">
+        {/* Mobile: stacked audit entries */}
+        <div className="divide-y divide-slate-100 lg:hidden">
+          {!hydrated || logs.length === 0 ? (
+            <p className="px-4 py-6 text-center text-sm text-slate-400">
+              {hydrated ? "No events recorded." : "Loading audit trail…"}
+            </p>
+          ) : (
+            logs.map((log) => (
+              <div key={log.id} className="px-4 py-3">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="flex min-w-0 items-center gap-2">
+                    <span className="truncate font-medium text-slate-700">
+                      {log.userId}
+                    </span>
+                    <span className="shrink-0 rounded bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase text-slate-500">
+                      {log.role}
+                    </span>
+                  </span>
+                  <span className="text-[11px] text-slate-400">
+                    {formatTime(log.timestamp)}
+                  </span>
+                </div>
+                <p className="mt-1.5 text-sm font-medium text-slate-700">
+                  {log.action}
+                </p>
+                <dl className="mt-1.5 grid grid-cols-[auto_minmax(0,1fr)] gap-x-2 gap-y-0.5 font-mono text-[11px] text-slate-500">
+                  <dt className="text-slate-400">Resource</dt>
+                  <dd className="truncate">{log.resourceId}</dd>
+                  <dt className="text-slate-400">IP</dt>
+                  <dd className="truncate">{log.ipAddress}</dd>
+                </dl>
+              </div>
+            ))
+          )}
+        </div>
+
+        {/* Desktop (lg+): table view */}
+        <div className="hidden overflow-x-auto lg:block">
           <table className="w-full text-left text-sm">
             <thead className="bg-slate-50 text-[11px] uppercase tracking-wide text-slate-400">
               <tr>
@@ -247,35 +292,6 @@ function AdminDashboard() {
             </tbody>
           </table>
         </div>
-        {/* Mobile: card view */}
-        <div className="divide-y divide-slate-100 md:hidden">
-          {!hydrated || logs.length === 0 ? (
-            <p className="px-5 py-6 text-center text-sm text-slate-400">
-              {hydrated ? "No events recorded." : "Loading audit trail…"}
-            </p>
-          ) : (
-            logs.map((log) => (
-              <div key={log.id} className="space-y-1.5 px-5 py-3.5">
-                <div className="flex items-center justify-between gap-2">
-                  <span className="font-medium text-slate-700">
-                    {log.userId}
-                  </span>
-                  <span className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] uppercase text-slate-500">
-                    {log.role}
-                  </span>
-                </div>
-                <p className="text-sm text-slate-600">{log.action}</p>
-                <p className="font-mono text-xs text-slate-400">
-                  {log.resourceId}
-                </p>
-                <div className="flex items-center justify-between gap-2 text-xs text-slate-400">
-                  <span>{formatTime(log.timestamp)}</span>
-                  <span className="font-mono">{log.ipAddress}</span>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </Card>
 
       {/* Demo reset confirmation */}
@@ -294,6 +310,7 @@ function AdminDashboard() {
         onConfirm={async () => {
           setConfirmReset(false);
           await resetDemo();
+          toast.success("Demo data reset.");
         }}
         onCancel={() => setConfirmReset(false)}
       />

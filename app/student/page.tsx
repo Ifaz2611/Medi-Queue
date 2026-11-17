@@ -10,7 +10,6 @@ import {
   Lock,
   TriangleAlert,
   UserRound,
-  X,
 } from "lucide-react";
 import Card from "@/components/Card";
 import LifecycleStepper from "@/components/LifecycleStepper";
@@ -20,10 +19,12 @@ import UrgencyBadge from "@/components/UrgencyBadge";
 import { PRIORITY_SLOTS, SLOTS } from "@/lib/mockData";
 import { sortQueue } from "@/lib/queue";
 import { useStore } from "@/lib/store";
+import { useToast } from "@/lib/toast";
 import { SYMPTOMS, WEIGHTS, triage } from "@/lib/triage";
 
 function StudentPortal() {
   const { user, bookSlot, isSlotAvailable, appointments } = useStore();
+  const toast = useToast();
 
   const studentName = user?.name ?? "";
   const studentId = user?.id ?? "";
@@ -34,7 +35,6 @@ function StudentPortal() {
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
   const [error, setError] = useState("");
   const [bookedId, setBookedId] = useState<string | null>(null);
-  const [toast, setToast] = useState<string | null>(null);
 
   const result = useMemo(
     () => triage(symptoms, severity, chiefComplaint),
@@ -65,16 +65,16 @@ function StudentPortal() {
     );
     if (!response.ok) {
       setError(response.reason ?? "Unable to book this slot.");
+      toast.error(response.reason ?? "Unable to book this slot.");
       return;
     }
     setBookedId(response.appointment!.id);
+    toast.success(
+      `Appointment booked for ${response.appointment!.slot} (${response.appointment!.urgency} priority).`,
+    );
     setSelectedSlot(null);
     setChiefComplaint("");
     setSymptoms([]);
-    setToast(
-      `Appointment booked for ${response.appointment!.slot} (${response.appointment!.urgency} priority).`,
-    );
-    window.setTimeout(() => setToast(null), 4000);
   };
 
   const urgencyRing =
@@ -86,25 +86,6 @@ function StudentPortal() {
 
   return (
     <div className="space-y-6">
-      {/* Booking success toast */}
-      {toast && (
-        <div
-          role="status"
-          aria-live="polite"
-          className="fixed inset-x-4 bottom-4 z-50 mx-auto flex max-w-md items-start gap-3 rounded-xl border border-emerald-200 bg-white p-4 shadow-lg sm:left-auto sm:right-4 sm:mx-0"
-        >
-          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-600" />
-          <div className="flex-1 text-sm text-slate-700">{toast}</div>
-          <button
-            type="button"
-            onClick={() => setToast(null)}
-            aria-label="Dismiss notification"
-            className="rounded-md p-1 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-      )}
       <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl bg-gradient-to-r from-blue-600 to-sky-500 p-6 text-white shadow-sm">
         <div>
           <p className="text-xs font-semibold uppercase tracking-widest text-blue-100">
