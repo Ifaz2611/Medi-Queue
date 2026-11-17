@@ -89,24 +89,24 @@ To keep the project simple, collaborative, and tailored for a university course 
 **Goal:** Make the doctor and admin portals more interactive with patient search, urgency filters, visual clinic statistics, and mobile styling adjustments.
 
 ### Tasks
-- [ ] **Doctor Queue Patient Search & Filter:**
+- [x] **Doctor Queue Patient Search & Filter:**
   - Add a search input bar on the Doctor Dashboard (`app/doctor/page.tsx`) to filter patients by Student ID or chief complaint.
   - Add an urgency filter dropdown (`All`, `High`, `Medium`, `Low`) to quickly view specific patient groups.
-- [ ] **Clinic Summary Stats Cards:**
+- [x] **Clinic Summary Stats Cards:**
   - Add simple statistical metric cards at the top of the Doctor and Admin pages:
     - *Total Appointments Today*
     - *High Priority Cases Count*
     - *Active in Queue vs. Completed*
     - *Average Severity Score*
   - Derived simply from the existing `appointments` array in `lib/store.tsx`.
-- [ ] **User Feedback & Confirmation Modals:**
+- [x] **User Feedback & Confirmation Modals:**
   - Add a confirmation popup modal when a doctor clicks to mark an appointment as `Completed`.
   - Add a confirmation prompt before resetting demo data on the admin page.
   - Add a temporary success notification toast or banner when an appointment is booked.
-- [ ] **Mobile Responsiveness Polish:**
+- [x] **Mobile Responsiveness Polish:**
   - Ensure the appointment tables collapse cleanly into easy-to-read cards on mobile/tablet viewports.
   - Ensure touch targets and button spacing work comfortably on small screens.
-- [ ] **Print Daily Schedule View:**
+- [x] **Print Daily Schedule View:**
   - Add a "Print Schedule" button on the Doctor Dashboard that triggers a clean `window.print()` view of the day's patient queue.
 
 ### Acceptance Criteria
